@@ -20,6 +20,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { signup } from "@/lib/api/auth";
 
+
 interface FormData {
   name: string;
   email: string;
@@ -319,7 +320,8 @@ export default function SignupPage() {
                 <Separator className="flex-1" />
               </div>
               <div className="mt-4 grid w-full gap-2">
-                <Button variant="outline" type="button" className="w-full">
+                <Button variant="outline" type="button" className="w-full"
+                  onClick={() => window.location.href = 'https://smartpantry-bc4q.onrender.com/auth/google/'} >
                   Continue with Google
                 </Button>
                 <Button variant="outline" type="button" className="w-full">

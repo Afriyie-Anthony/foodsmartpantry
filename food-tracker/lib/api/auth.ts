@@ -56,6 +56,7 @@ export async function login(
     throw error;
   }
 }
+import Swal from 'sweetalert2'
 
 export async function signup(
   credentials: SignupCredentials
@@ -78,6 +79,13 @@ export async function signup(
     return data;
   } catch (error) {
     console.error("Signup error:", error);
+    Swal.fire({
+      icon: "error",
+      title: "Oops...",
+      text: "The email is already in use. Please try again with a different, valid email."
+    });
     throw error;
   }
 }
+
+

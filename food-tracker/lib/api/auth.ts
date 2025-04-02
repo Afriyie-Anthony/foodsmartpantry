@@ -20,6 +20,7 @@ interface SignupCredentials {
   password: string;
 }
 
+
 interface SignupResponse {
   message: string;
   user: {
@@ -86,6 +87,7 @@ export async function signup(
     });
     throw error;
   }
+
 }
 
 

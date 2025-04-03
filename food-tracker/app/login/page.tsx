@@ -18,6 +18,9 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { login } from "@/lib/api/auth";
+import Image from "next/image";
+import google from "@/public/images/google.png"
+import apple from "@/public/images/apple.png"
 
 export default function LoginPage() {
   const router = useRouter();
@@ -171,9 +174,20 @@ export default function LoginPage() {
               </div>
               <div className="mt-4 grid w-full gap-2">
                 <Button variant="outline" type="button" className="w-full">
+                <Image
+                    src={google}
+                                    alt="Google Icon"
+                  className="w-[30px] rounded-[5%]"
+                                    />
                   Continue with Google
                 </Button>
                 <Button variant="outline" type="button" className="w-full">
+                  
+                                     <Image
+                  src={apple}
+                  alt="Apple Icon"
+                  className="w-[30px] rounded-[5%]"
+                  />
                   Continue with Apple
                 </Button>
               </div>

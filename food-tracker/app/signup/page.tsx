@@ -322,7 +322,7 @@ export default function SignupPage() {
                 <Separator className="flex-1" />
               </div>
               <div className="mt-4 grid w-full gap-2">
-                <Button variant="outline" type="button" className="w-full">
+                <Button variant="outline" type="button" className="w-full"  onClick={() => window.location.href = 'https://smartpantry-bc4q.onrender.com/auth/google/'}>
                   <Image
                   src={google}
                   alt="Google Icon"

@@ -3,6 +3,8 @@ import { ArrowRight, Calendar, Check, Clock, Leaf, ShoppingBasket } from "lucide
 import { Button } from "@/components/ui/button"
 import { MobileNav } from "@/components/mobile-nav"
 import { Badge } from "@/components/ui/badge"
+import Image from "next/image";
+import smallbg from "@/public/images/smallbg.jpg"
 
 export default function Home() {
   return (
@@ -166,11 +168,13 @@ export default function Home() {
               {/* Hero image with floating card elements */}
               <div className="relative lg:order-last">
                 <div className="relative rounded-xl overflow-hidden shadow-2xl">
-                  <img
-                    alt="Food tracking app dashboard"
-                    className="w-full aspect-video object-cover object-center"
-                    src="/placeholder.svg?height=550&width=800"
-                  />
+                   <Image
+                      src={smallbg}
+                      alt="Food tracking app dashboard"
+
+                      className="w-full aspect-video object-cover object-center"
+
+                   />
 
                   {/* Floating card elements */}
                   <div className="absolute -bottom-6 -left-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-3 animate-float-slow">

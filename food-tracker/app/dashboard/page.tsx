@@ -87,7 +87,7 @@ export default function Dashboard() {
     return isBefore(expiryDate, threeDaysFromNow)
   })
 
-  const removeItem = (id) => {
+  const removeItem = (id: number) => {
     setItems(items.filter((item) => item.id !== id))
     toast({
       title: "Item removed",
@@ -95,20 +95,20 @@ export default function Dashboard() {
     })
   }
 
-  const getDaysUntilExpiry = (dateString) => {
+  const getDaysUntilExpiry = (dateString: string) => {
     const today = new Date()
     const expiryDate = parseISO(dateString)
     const diffTime = expiryDate.getTime() - today.getTime()
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24))
   }
 
-  const getExpiryStatusColor = (days) => {
+  const getExpiryStatusColor = (days: number) => {
     if (days < 0) return "text-red-500 dark:text-red-400"
     if (days <= 2) return "text-amber-500 dark:text-amber-400"
     return "text-emerald-600 dark:text-emerald-500"
   }
 
-  const getProgressColor = (days) => {
+  const getProgressColor = (days: number) => {
     if (days < 0) return "bg-red-500 dark:bg-red-400"
     if (days <= 2) return "bg-amber-500 dark:bg-amber-400"
     return "bg-emerald-600 dark:bg-emerald-500"

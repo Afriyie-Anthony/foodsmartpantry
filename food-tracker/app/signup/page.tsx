@@ -148,36 +148,31 @@ export default function SignupPage() {
   };
 
   // Handle Google OAuth redirect on component mount
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get("token");
-    const role = params.get("role");
+    useEffect(() => {
+      const params = new URLSearchParams(window.location.search);
+      const token = params.get("token");
+      const role = params.get("role");
   
-    if (token && role) {
-      // Store token and role in local storage
-      localStorage.setItem("token", token);
-      localStorage.setItem("role", role);
+      if (token && role) {
+        // Store token and role in local storage
+        localStorage.setItem("token", token);
+        localStorage.setItem("role", role);
   
-      // Redirect based on the user role
-      if (role === 'admin') {
-        router.push("/adminDashboard"); // Redirect to admin dashboard
-      } else if (role === 'user') {
-        router.push("/dashboard"); // Redirect to user dashboard
-      } else {
-        // Optionally handle unknown roles
-        console.error("Unknown user role:", role);
-        alert("An error occurred: Unknown user role."); // Provide user feedback
-        router.push("/"); // Redirect to home or error page
+        // Redirect based on the user role
+        if (role === 'admin') {
+          router.push("/adminDashboard"); // Redirect to admin dashboard
+        } else if (role === 'user') {
+          router.push("/dashboard"); // Redirect to user dashboard
+        } else {
+          // Optionally handle unknown roles
+          console.error("Unknown user role:", role);
+          alert("An error occurred: Unknown user role."); // Provide user feedback
+          router.push("/"); // Redirect to home or error page
+        }
+  
+        // Optionally clear the search params from the URL
+        window.history.replaceState({}, document.title, window.location.origin + window.location.pathname);
       }
-  
-      // Clear the search params from the URL (optional)
-      window.history.replaceState({}, document.title, window.location.origin + window.location.pathname);
-    } else {
-      // Optionally handle cases where token or role is missing
-      console.error("Token or role missing in the URL");
-      alert("An error occurred: Missing token or role."); // Provide user feedback
-      router.push("/"); // Redirect to home or error page
-    }
   }, [router]);
 
   return (

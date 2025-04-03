@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, FormEvent, ChangeEvent } from "react";
+import { useState, FormEvent, ChangeEvent, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Lock, Mail, ShoppingBasket, User } from "lucide-react";
@@ -20,8 +20,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { signup } from "@/lib/api/auth";
 import Image from "next/image";
-import google from "@/public/images/google.png"
-import apple from "@/public/images/apple.png"
+import google from "@/public/images/google.png";
+import apple from "@/public/images/apple.png";
 
 interface FormData {
   name: string;
@@ -76,6 +76,7 @@ export default function SignupPage() {
     let isValid = true;
     const newErrors = { ...errors };
 
+    // Email and Password Validations
     if (!formData.name.trim()) {
       newErrors.name = "Name is required";
       isValid = false;
@@ -145,6 +146,21 @@ export default function SignupPage() {
       setIsLoading(false);
     }
   };
+
+  // Handle Google OAuth redirect on component mount
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("token");
+    const role = params.get("role");
+
+    if (token && role) {
+      // Store token and role in local storage
+      localStorage.setItem("token", token);
+      localStorage.setItem("role", role);
+      // Optionally redirect or do some state management after authentication
+      router.push("/dashboard"); // Redirect to dashboard after acquiring token
+    }
+  }, [router]);
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -322,19 +338,26 @@ export default function SignupPage() {
                 <Separator className="flex-1" />
               </div>
               <div className="mt-4 grid w-full gap-2">
-                <Button variant="outline" type="button" className="w-full"  onClick={() => window.location.href = 'https://smartpantry-bc4q.onrender.com/auth/google/'}>
+                <Button
+                  variant="outline"
+                  type="button"
+                  className="w-full"
+                  onClick={() =>
+                    window.location.href = 'https://smartpantry-bc4q.onrender.com/auth/google/'
+                  }
+                >
                   <Image
-                  src={google}
-                  alt="Google Icon"
-                  className="w-[30px] rounded-[5%]"
+                    src={google}
+                    alt="Google Icon"
+                    className="w-[30px] rounded-[5%]"
                   />
                   Continue with Google
                 </Button>
                 <Button variant="outline" type="button" className="w-full">
-                <Image
-                  src={apple}
-                  alt="Apple Icon"
-                  className="w-[30px] rounded-[5%]"
+                  <Image
+                    src={apple}
+                    alt="Apple Icon"
+                    className="w-[30px] rounded-[5%]"
                   />
                   Continue with Apple
                 </Button>

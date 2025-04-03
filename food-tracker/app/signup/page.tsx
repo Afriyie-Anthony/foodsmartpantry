@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, FormEvent, ChangeEvent } from "react";
+import { useState, useEffect, FormEvent, ChangeEvent } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff, Lock, Mail, ShoppingBasket, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,8 +20,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { signup } from "@/lib/api/auth";
 import Image from "next/image";
-import google from "@/public/images/google.png"
-import apple from "@/public/images/apple.png"
+import google from "@/public/images/google.png";
+import apple from "@/public/images/apple.png";
 
 interface FormData {
   name: string;
@@ -41,6 +41,7 @@ interface FormErrors {
 
 export default function SignupPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -59,6 +60,17 @@ export default function SignupPage() {
     agreeTerms: "",
   });
 
+  useEffect(() => {
+    const token = searchParams.get("token");
+    const role = searchParams.get("role");
+
+    if (token && role) {
+      localStorage.setItem("authToken", token);
+      localStorage.setItem("userRole", role);
+      router.push("/dashboard");
+    }
+  }, [searchParams, router]);
+
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
@@ -66,7 +78,6 @@ export default function SignupPage() {
       [name]: type === "checkbox" ? checked : value,
     }));
 
-    // Clear error when field is edited
     if (errors[name as keyof FormErrors]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
     }
@@ -121,7 +132,6 @@ export default function SignupPage() {
     setIsLoading(true);
 
     try {
-      // Call the signup API
       const response = await signup({
         name: formData.name,
         email: formData.email,
@@ -138,12 +148,15 @@ export default function SignupPage() {
         variant: "destructive",
         title: "Registration failed",
         description:
-          error.message ||
-          "An error occurred during registration. Please try again.",
+          error.message || "An error occurred during registration. Please try again.",
       });
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleGoogleSignup = () => {
+    window.location.href = "https://smartpantry-bc4q.onrender.com/auth/google/";
   };
 
   return (
@@ -322,7 +335,8 @@ export default function SignupPage() {
                 <Separator className="flex-1" />
               </div>
               <div className="mt-4 grid w-full gap-2">
-                <Button variant="outline" type="button" className="w-full"  onClick={() => window.location.href = 'https://smartpantry-bc4q.onrender.com/auth/google/'}>
+              <Button variant="outline" type="button" className="w-full" onClick={handleGoogleSignup}>
+
                   <Image
                   src={google}
                   alt="Google Icon"

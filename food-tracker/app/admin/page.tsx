@@ -5,9 +5,7 @@ const adminDashboard = () => {
       <section className="flex">
       <Sidebar />
       <div className="p-6 flex-1 overflow-scroll h-[100vh]">
-        <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
-        <p className="text-gray-600 mt-2">Welcome to SmartPantry+ Admin Dashboard.</p>
-  
+        <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>  
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
           <div className="bg-white shadow-md p-6 rounded-lg">
             <h2 className="text-lg font-semibold text-gray-700">Total Inventory</h2>

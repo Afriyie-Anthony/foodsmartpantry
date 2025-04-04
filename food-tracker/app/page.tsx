@@ -6,6 +6,11 @@ import { Badge } from "@/components/ui/badge"
 import Image from "next/image";
 import smallbg from "@/public/images/smallbg.jpg"
 
+
+const HomeImages = [
+  
+]
+
 export default function Home() {
   return (
     <div className="flex flex-col min-h-screen bg-white dark:bg-gray-950">
@@ -21,6 +26,12 @@ export default function Home() {
             href="/dashboard"
           >
             Dashboard
+          </Link>
+          <Link
+            className="text-sm font-medium text-gray-700 hover:text-emerald-600 dark:text-gray-300 dark:hover:text-emerald-500 hover:underline underline-offset-4"
+            href="/admin"
+          >
+            adminDashboard
           </Link>
           <Link
             className="text-sm font-medium text-gray-700 hover:text-emerald-600 dark:text-gray-300 dark:hover:text-emerald-500 hover:underline underline-offset-4"

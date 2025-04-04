@@ -160,7 +160,7 @@ export default function SignupPage() {
   
         // Redirect based on the user role
         if (role === 'admin') {
-          router.push("/adminDashboard"); // Redirect to admin dashboard
+          router.push("/admin"); // Redirect to admin dashboard
         } else if (role === 'user') {
           router.push("/dashboard"); // Redirect to user dashboard
         } else {

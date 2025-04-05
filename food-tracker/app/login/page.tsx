@@ -20,7 +20,7 @@ import { useToast } from "@/hooks/use-toast";
 import { login } from "@/lib/api/auth";
 import Image from "next/image";
 import google from "@/public/images/google.png"
-import apple from "@/public/images/apple.png"
+import facebook from "@/public/images/facebooklog.png"
 
 export default function LoginPage() {
   const router = useRouter();
@@ -209,14 +209,15 @@ export default function LoginPage() {
                                     />
                   Continue with Google
                 </Button>
-                <Button variant="outline" type="button" className="w-full">
-                  
-                                     <Image
-                  src={apple}
-                  alt="Apple Icon"
-                  className="w-[30px] rounded-[5%]"
-                  />
-                  Continue with Apple
+                <Button variant="outline" type="button" className="w-full"  onClick={() =>
+                   window.location.href = 'https://smartpantry-bc4q.onrender.com/auth/facebook/redirect'
+                      }>
+                      <Image
+                      src={facebook}
+                         alt="facebook Icon"
+                      className="w-[30px] rounded-[5%]"
+                    />
+                         Continue with facebook
                 </Button>
               </div>
             </CardFooter>

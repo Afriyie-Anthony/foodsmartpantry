@@ -1,3 +1,4 @@
+"use client"
 import { SetStateAction, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";

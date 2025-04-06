@@ -1,17 +1,44 @@
+"use client"
 import Link from "next/link"
 import { ArrowRight, Calendar, Check, Clock, Leaf, ShoppingBasket } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { MobileNav } from "@/components/mobile-nav"
 import { Badge } from "@/components/ui/badge"
 import Image from "next/image";
-import smallbg from "@/public/images/smallbg.jpg"
+import { useState, useEffect } from "react"
 
 
-const HomeImages = [
-  
-]
 
 export default function Home() {
+  const images = [
+    '/images/smallbg.jpg',
+    '/images/food.jpg',
+    'images/another2.jpg',
+    'images/another1.jpg',
+    'images/anotherbg.jpg',
+    'images/food2.jpg',
+    'images/food3.jpg',
+    'images/bg2.avif',
+    'images/bg4.jpg'
+  ];
+
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [fade, setFade] = useState(false);
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setFade(true); // Trigger fade out
+      setTimeout(() => {
+        setCurrentImageIndex((prevIndex) => (prevIndex + 1) % images.length);
+        setFade(false); // Trigger fade in
+      }, 1000); // Assume fade duration is 1 second
+    }, 7000); // Change image every 7 seconds
+
+    return () => clearInterval(intervalId);
+  }, [images.length]);
+
+
+
   return (
     <div className="flex flex-col min-h-screen bg-white dark:bg-gray-950">
       {/* Header with mobile navigation */}
@@ -178,15 +205,15 @@ export default function Home() {
 
               {/* Hero image with floating card elements */}
               <div className="relative lg:order-last">
-                <div className="relative rounded-xl overflow-hidden shadow-2xl">
-                   <Image
-                      src={smallbg}
-                      alt="Food tracking app dashboard"
-
-                      className="w-full aspect-video object-cover object-center"
-
-                   />
-
+              <div className="relative w-full h-64 overflow-hidden rounded-xl shadow-2xl">
+                <div className={`transition-opacity duration-1000 ${fade ? 'opacity-0' : 'opacity-100'}`}>
+                  <Image
+                    src={images[currentImageIndex]}
+                    alt={`Image number ${currentImageIndex + 1}`}
+                    className="w-full h-full object-cover object-center"
+                    layout="fill" // Fill the parent container
+                  />
+                  </div>
                   {/* Floating card elements */}
                   <div className="absolute -bottom-6 -left-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-3 animate-float-slow">
                     <div className="flex items-center gap-2">

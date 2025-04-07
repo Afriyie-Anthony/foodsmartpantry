@@ -38,63 +38,36 @@ const Sidebar = () => {
         </button>
       </div>
       <nav className="mt-4">
-        <Link
-          className="mb-3 p-3 rounded-lg hover:bg-green-700 transition-all flex items-center"
-          href="/admin"
-        >
-          <FaHome className="mr-2" /> {isOpen && "Dashboard"}
-        </Link>
-        <Link
-          className="mb-3 p-3 rounded-lg hover:bg-green-700 transition-all flex items-center"
-          href="/inventory"
-        >
-          <FaBox className="mr-2" /> {isOpen && "Inventory"}
-        </Link>
-        <Link
-          className="mb-3 p-3 rounded-lg hover:bg-green-700 transition-all flex items-center"
-          href="/user"
-        >
-          <FaBox className="mr-2" /> {isOpen && "Users"}
-        </Link>
-        <Link
-          className="mb-3 p-3 rounded-lg hover:bg-green-700 transition-all flex items-center"
-          href="/orders"
-        >
-          <FaClipboardList className="mr-2" /> {isOpen && "Orders"}
-        </Link>
-        <Link
-          className="mb-3 p-3 rounded-lg hover:bg-green-700 transition-all flex items-center"
-          href="/admin/deliveries"
-        >
-          <FaTruck className="mr-2" /> {isOpen && "Deliveries"}
-        </Link>
-        <Link
-          className="mb-3 p-3 rounded-lg hover:bg-green-700 transition-all flex items-center"
-          href="/admin/orders"
-        >
-          <FaCreditCard className="mr-2" /> {isOpen && "Payments"}
-        </Link>
-        <Link
-          className="mb-3 p-3 rounded-lg hover:bg-green-700 transition-all flex items-center"
-          href="admin/invoices"
-        >
-          <FaFileInvoice className="mr-2" /> {isOpen && "Invoices"}
-        </Link>
-        <Link
-          className="m3-4 p-3 rounded-lg hover:bg-green-700 transition-all flex items-center"
-          href="admin/tips"
-        >
-          <FaRegBell className="mr-2" /> {isOpen && "Tips"}
-        </Link>
-
-        <Link
-          className="p-3 hover:bg-red-700 mt-auto flex items-center"
-          href="/signout"
-        >
-          <button className="flex items-center w-full">
-            <FaSignOutAlt className="mr-2" /> {isOpen && "Logout"}
-          </button>
-        </Link>
+          <Link className="mb-3 p-3 rounded-lg hover:bg-green-700 transition-all flex items-center" href="/admin/dashboard">
+              <FaHome className="mr-2" /> {isOpen && 'Dashboard'}
+            </Link>
+          <Link className="mb-3 p-3 rounded-lg hover:bg-green-700 transition-all flex items-center" href="/admin/inventory">
+              <FaBox className="mr-2" /> {isOpen && 'Inventory'}
+            </Link>
+            <Link className="mb-3 p-3 rounded-lg hover:bg-green-700 transition-all flex items-center" href="/admin/user">
+              <FaBox className="mr-2" /> {isOpen && 'User'}
+            </Link>
+          <Link className="mb-3 p-3 rounded-lg hover:bg-green-700 transition-all flex items-center" href= "/admin/orders">
+              <FaClipboardList className="mr-2" /> {isOpen && 'Orders'}
+            </Link>
+          <Link className="mb-3 p-3 rounded-lg hover:bg-green-700 transition-all flex items-center" href= "/admin/delivery">
+              <FaTruck className="mr-2" /> {isOpen && 'Delivery'}
+            </Link>
+          <Link className="mb-3 p-3 rounded-lg hover:bg-green-700 transition-all flex items-center" href= "/admin/orders">
+              <FaCreditCard className="mr-2" /> {isOpen && 'Payments'}
+            </Link>
+          <Link className="mb-3 p-3 rounded-lg hover:bg-green-700 transition-all flex items-center" href="admin/invoices">
+              <FaFileInvoice className="mr-2" /> {isOpen && 'Invoices'}
+            </Link>
+          <Link className="m3-4 p-3 rounded-lg hover:bg-green-700 transition-all flex items-center" href="admin/tips">
+              <FaRegBell className="mr-2" /> {isOpen && 'Tips'}
+            </Link>
+          
+          <Link className="p-3 hover:bg-red-700 mt-auto flex items-center" href="/signout">
+            <button className="flex items-center w-full">
+              <FaSignOutAlt className="mr-2" /> {isOpen && 'Logout'}
+            </button>
+          </Link>
       </nav>
     </div>
   );

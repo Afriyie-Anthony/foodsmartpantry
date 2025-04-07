@@ -38,28 +38,28 @@ const Sidebar = () => {
         </button>
       </div>
       <nav className="mt-4">
-          <Link className="mb-3 p-3 rounded-lg hover:bg-green-700 transition-all flex items-center" href="/admin/dashboard">
+          <Link className="mb-3 p-3 rounded-lg hover:bg-green-700 transition-all flex items-center" href="/admin">
               <FaHome className="mr-2" /> {isOpen && 'Dashboard'}
             </Link>
-          <Link className="mb-3 p-3 rounded-lg hover:bg-green-700 transition-all flex items-center" href="/admin/inventory">
+          <Link className="mb-3 p-3 rounded-lg hover:bg-green-700 transition-all flex items-center" href="/inventory">
               <FaBox className="mr-2" /> {isOpen && 'Inventory'}
             </Link>
-            <Link className="mb-3 p-3 rounded-lg hover:bg-green-700 transition-all flex items-center" href="/admin/user">
+            <Link className="mb-3 p-3 rounded-lg hover:bg-green-700 transition-all flex items-center" href="/user">
               <FaBox className="mr-2" /> {isOpen && 'User'}
             </Link>
-          <Link className="mb-3 p-3 rounded-lg hover:bg-green-700 transition-all flex items-center" href= "/admin/orders">
+          <Link className="mb-3 p-3 rounded-lg hover:bg-green-700 transition-all flex items-center" href= "/orders">
               <FaClipboardList className="mr-2" /> {isOpen && 'Orders'}
             </Link>
-          <Link className="mb-3 p-3 rounded-lg hover:bg-green-700 transition-all flex items-center" href= "/admin/delivery">
+          <Link className="mb-3 p-3 rounded-lg hover:bg-green-700 transition-all flex items-center" href= "/delivery">
               <FaTruck className="mr-2" /> {isOpen && 'Delivery'}
             </Link>
-          <Link className="mb-3 p-3 rounded-lg hover:bg-green-700 transition-all flex items-center" href= "/admin/orders">
+          <Link className="mb-3 p-3 rounded-lg hover:bg-green-700 transition-all flex items-center" href= "/orders">
               <FaCreditCard className="mr-2" /> {isOpen && 'Payments'}
             </Link>
-          <Link className="mb-3 p-3 rounded-lg hover:bg-green-700 transition-all flex items-center" href="admin/invoices">
+          <Link className="mb-3 p-3 rounded-lg hover:bg-green-700 transition-all flex items-center" href="/invoices">
               <FaFileInvoice className="mr-2" /> {isOpen && 'Invoices'}
             </Link>
-          <Link className="m3-4 p-3 rounded-lg hover:bg-green-700 transition-all flex items-center" href="admin/tips">
+          <Link className="m3-4 p-3 rounded-lg hover:bg-green-700 transition-all flex items-center" href="/tips">
               <FaRegBell className="mr-2" /> {isOpen && 'Tips'}
             </Link>
           

@@ -1,7 +1,7 @@
 import "@/app/globals.css";
 import { Inter } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
-import { Footer } from "@/components/footer";
+
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -19,7 +19,7 @@ export default function RootLayout({ children }) {
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <div className="min-h-screen flex flex-col">
             <main className="flex-grow">{children}</main>
-            <Footer />
+            
           </div>
         </ThemeProvider>
       </body>

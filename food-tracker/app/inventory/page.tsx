@@ -23,8 +23,8 @@ export default function Inventory() {
   return (
     <div className="flex">
       <Sidebar />
-      <div className="p-6 w-full flex flex-col items-center">
-        <div className="w-full max-w-4xl">
+      <div className="p-6 w-full flex flex-col items-center flex-1">
+        <div className="w-full max-w-6xl">
           <h2 className="text-xl font-semibold mb-4">Inventory Management</h2>
           <Input 
             placeholder="Search inventory operations..." 

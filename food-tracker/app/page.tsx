@@ -6,6 +6,7 @@ import { MobileNav } from "@/components/mobile-nav"
 import { Badge } from "@/components/ui/badge"
 import Image from "next/image";
 import { useState, useEffect } from "react"
+import { Footer } from "@/components/footer"
 
 
 

@@ -1,93 +1,87 @@
-interface LoginCredentials {
+export interface LoginRequest {
   email: string;
   password: string;
 }
 
-interface LoginResponse {
-  access_token: string;
-  user: {
-    id: string;
-    email: string;
-    firstname?: string;
-    surname?: string;
-    contact?: string;
-  };
+export interface LoginResponse {
+  token: string;
+  role: string;
+  message?: string;
 }
 
-interface SignupCredentials {
+export interface SignupRequest {
   name: string;
   email: string;
   password: string;
 }
 
-
-interface SignupResponse {
-  message: string;
-  user: {
-    id: string;
-    email: string;
-    name: string;
-  };
+export interface SignupResponse {
+  token: string;
+  role: string;
+  message?: string;
 }
 
-export async function login(
-  credentials: LoginCredentials
-): Promise<LoginResponse> {
+export const login = async (data: LoginRequest): Promise<LoginResponse> => {
   try {
     const response = await fetch(
-      "https://smartpantry-bc4q.onrender.com/auth/login/",
+      "https://smartpantry-bc4q.onrender.com/auth/login",
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(credentials),
+        body: JSON.stringify(data),
       }
     );
 
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || "Login failed");
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Login failed");
     }
 
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error("Login error:", error);
-    throw error;
+    const responseData = await response.json();
+    return {
+      token: responseData.token || responseData.access_token,
+      role: responseData.role || "user",
+      message: responseData.message,
+    };
+  } catch (error: any) {
+    throw new Error(error.message || "An error occurred during login");
   }
-}
-import Swal from 'sweetalert2'
+};
 
-export async function signup(
-  credentials: SignupCredentials
-): Promise<SignupResponse> {
+import Swal from "sweetalert2";
+
+export const signup = async (data: SignupRequest): Promise<SignupResponse> => {
   try {
-    const response = await fetch("https://smartpantry-bc4q.onrender.com/auth/register/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(credentials),
-    });
+    const response = await fetch(
+      "https://smartpantry-bc4q.onrender.com/auth/register",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      }
+    );
 
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || "Registration failed");
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Registration failed");
     }
 
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error("Signup error:", error);
-    Swal.fire({
-      icon: "error",
-      title: "Oops...",
-      text: "The email is already in use. Please try again with a different, valid email."
-    });
-    throw error;
+    const responseData = await response.json();
+    return {
+      token: responseData.token || responseData.access_token,
+      role: responseData.role || "user",
+      message: responseData.message,
+    };
+  } catch (error: any) {
+    throw new Error(error.message || "An error occurred during registration");
   }
+};
 
-}
-
-
+export const logout = async (): Promise<void> => {
+  localStorage.removeItem("token");
+  localStorage.removeItem("role");
+};

@@ -106,17 +106,15 @@ export default function DeliveryPage() {
   return (
     <div className="flex">
         <Sidebar /> 
-      <div className="flex items-center justify-between">
-       
-      </div>
+     
 
-      <Card>
+      <Card className="w-full flex-[2]">
         <CardHeader>
           <CardTitle>Deliveries</CardTitle>
           <CardDescription>Manage all your delivery orders from one place.</CardDescription>
         </CardHeader>
         <CardContent>
-        <Button>
+        <Button className="mb-4">
           <Plus className="mr-2 h-4 w-4" />
           New Delivery
         </Button>

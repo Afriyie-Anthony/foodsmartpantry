@@ -18,79 +18,143 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { login } from "@/lib/api/auth";
+import { setAuthCookies, isAuthenticated } from "@/lib/auth";
 import Image from "next/image";
-import google from "@/public/images/google.png"
-import facebook from "@/public/images/facebooklog.png"
+import google from "@/public/images/google.png";
+import facebook from "@/public/images/facebooklog.png";
+
+interface FormData {
+  email: string;
+  password: string;
+}
+
+interface FormErrors {
+  email: string;
+  password: string;
+}
 
 export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
+    email: "",
+    password: "",
+  });
+  const [errors, setErrors] = useState<FormErrors>({
     email: "",
     password: "",
   });
 
+  // Check if user is already authenticated
+  useEffect(() => {
+    if (isAuthenticated()) {
+      // Redirect to dashboard if already logged in
+      router.push("/dashboard");
+    }
+  }, [router]);
+
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    // Clear error when field is edited
+    if (errors[name as keyof FormErrors]) {
+      setErrors((prev) => ({ ...prev, [name]: "" }));
+    }
+  };
+
+  const validateForm = () => {
+    let isValid = true;
+    const newErrors = { ...errors };
+
+    if (!formData.email.trim()) {
+      newErrors.email = "Email is required";
+      isValid = false;
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = "Email is invalid";
+      isValid = false;
+    }
+
+    if (!formData.password) {
+      newErrors.password = "Password is required";
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return isValid;
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    if (!validateForm()) {
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      const response = await login(formData);
+      // Call the login API
+      const response = await login({
+        email: formData.email,
+        password: formData.password,
+      });
 
-      // Store the token in localStorage or a secure cookie
-      localStorage.setItem("access_token", response.access_token);
+      // Set authentication cookies
+      setAuthCookies(response.token, response.role);
 
       toast({
         title: "Login successful",
-        description: "Welcome back to FreshTrack!",
+        description: "Welcome back!",
       });
-      router.push("/dashboard");
+
+      // Redirect based on user role
+      if (response.role === "admin") {
+        router.push("/admin");
+      } else {
+        router.push("/dashboard");
+      }
     } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Login failed",
-        description:
-          error.message || "Please check your credentials and try again.",
+        description: error.message || "Invalid email or password",
       });
     } finally {
       setIsLoading(false);
     }
   };
 
-   // Handle Google OAuth redirect on component mount
-      useEffect(() => {
-        const params = new URLSearchParams(window.location.search);
-        const token = params.get("token");
-        const role = params.get("role");
-    
-        if (token && role) {
-          // Store token and role in local storage
-          localStorage.setItem("token", token);
-          localStorage.setItem("role", role);
-    
-          // Redirect based on the user role
-          if (role === 'admin') {
-            router.push("/admin"); // Redirect to admin dashboard
-          } else if (role === 'user') {
-            router.push("/dashboard"); // Redirect to user dashboard
-          } else {
-            // Optionally handle unknown roles
-            console.error("Unknown user role:", role);
-            alert("An error occurred: Unknown user role."); // Provide user feedback
-            router.push("/"); // Redirect to home or error page
-          }
-    
-          // Optionally clear the search params from the URL
-          window.history.replaceState({}, document.title, window.location.origin + window.location.pathname);
-        }
-    }, [router]);
+  // Handle OAuth redirect on component mount
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("token");
+    const role = params.get("role");
+
+    if (token && role) {
+      // Set authentication cookies
+      setAuthCookies(token, role);
+
+      // Redirect based on the user role
+      if (role === "admin") {
+        router.push("/admin");
+      } else {
+        router.push("/dashboard");
+      }
+
+      // Clear the search params from the URL
+      window.history.replaceState(
+        {},
+        document.title,
+        window.location.origin + window.location.pathname
+      );
+    }
+  }, [router]);
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -136,20 +200,14 @@ export default function LoginPage() {
                     className="pl-10"
                     value={formData.email}
                     onChange={handleChange}
-                    required
                   />
                 </div>
+                {errors.email && (
+                  <p className="text-sm text-red-500">{errors.email}</p>
+                )}
               </div>
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Password</Label>
-                  <Link
-                    href="/forgot-password"
-                    className="text-xs text-green-600 hover:underline"
-                  >
-                    Forgot password?
-                  </Link>
-                </div>
+                <Label htmlFor="password">Password</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input
@@ -160,7 +218,6 @@ export default function LoginPage() {
                     className="pl-10"
                     value={formData.password}
                     onChange={handleChange}
-                    required
                   />
                   <Button
                     type="button"
@@ -179,6 +236,9 @@ export default function LoginPage() {
                     </span>
                   </Button>
                 </div>
+                {errors.password && (
+                  <p className="text-sm text-red-500">{errors.password}</p>
+                )}
               </div>
             </CardContent>
             <CardFooter className="flex flex-col">
@@ -190,7 +250,7 @@ export default function LoginPage() {
                 {isLoading ? "Logging in..." : "Login"}
               </Button>
               <div className="mt-4 text-center text-sm">
-                Don&apos;t have an account?{" "}
+                Don't have an account?{" "}
                 <Link href="/signup" className="text-green-600 hover:underline">
                   Sign up
                 </Link>
@@ -201,23 +261,37 @@ export default function LoginPage() {
                 <Separator className="flex-1" />
               </div>
               <div className="mt-4 grid w-full gap-2">
-                <Button variant="outline" type="button" className="w-full" onClick={() => window.location.href = 'https://smartpantry-bc4q.onrender.com/auth/google/'}>
-                <Image
+                <Button
+                  variant="outline"
+                  type="button"
+                  className="w-full"
+                  onClick={() =>
+                    (window.location.href =
+                      "https://smartpantry-bc4q.onrender.com/auth/google/")
+                  }
+                >
+                  <Image
                     src={google}
-                                    alt="Google Icon"
-                  className="w-[30px] rounded-[5%]"
-                                    />
+                    alt="Google Icon"
+                    className="w-[30px] rounded-[5%]"
+                  />
                   Continue with Google
                 </Button>
-                <Button variant="outline" type="button" className="w-full"  onClick={() =>
-                   window.location.href = 'https://smartpantry-bc4q.onrender.com/auth/facebook/redirect'
-                      }>
-                      <Image
-                      src={facebook}
-                         alt="facebook Icon"
-                      className="w-[30px] rounded-[5%]"
-                    />
-                         Continue with facebook
+                <Button
+                  variant="outline"
+                  type="button"
+                  className="w-full"
+                  onClick={() =>
+                    (window.location.href =
+                      "https://smartpantry-bc4q.onrender.com/auth/facebook/redirect")
+                  }
+                >
+                  <Image
+                    src={facebook}
+                    alt="facebook Icon"
+                    className="w-[30px] rounded-[5%]"
+                  />
+                  Continue with facebook
                 </Button>
               </div>
             </CardFooter>

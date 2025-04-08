@@ -19,6 +19,7 @@ import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { signup } from "@/lib/api/auth";
+import { setAuthCookies, isAuthenticated } from "@/lib/auth";
 import Image from "next/image";
 import google from "@/public/images/google.png";
 import facebook from "@/public/images/facebooklog.png";
@@ -58,6 +59,14 @@ export default function SignupPage() {
     confirmPassword: "",
     agreeTerms: "",
   });
+
+  // Check if user is already authenticated
+  useEffect(() => {
+    if (isAuthenticated()) {
+      // Redirect to dashboard if already logged in
+      router.push("/dashboard");
+    }
+  }, [router]);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -129,11 +138,20 @@ export default function SignupPage() {
         password: formData.password,
       });
 
+      // Set authentication cookies
+      setAuthCookies(response.token, response.role);
+
       toast({
         title: "Account created successfully",
         description: response.message || "Welcome to FreshTrack!",
       });
-      router.push("/dashboard");
+
+      // Redirect based on user role
+      if (response.role === "admin") {
+        router.push("/admin");
+      } else {
+        router.push("/dashboard");
+      }
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -147,32 +165,30 @@ export default function SignupPage() {
     }
   };
 
-  // Handle Google OAuth redirect on component mount
-    useEffect(() => {
-      const params = new URLSearchParams(window.location.search);
-      const token = params.get("token");
-      const role = params.get("role");
-  
-      if (token && role) {
-        // Store token and role in local storage
-        localStorage.setItem("token", token);
-        localStorage.setItem("role", role);
-  
-        // Redirect based on the user role
-        if (role === 'admin') {
-          router.push("/admin"); // Redirect to admin dashboard
-        } else if (role === 'user') {
-          router.push("/dashboard"); // Redirect to user dashboard
-        } else {
-          // Optionally handle unknown roles
-          console.error("Unknown user role:", role);
-          alert("An error occurred: Unknown user role."); // Provide user feedback
-          router.push("/"); // Redirect to home or error page
-        }
-  
-        // Optionally clear the search params from the URL
-        window.history.replaceState({}, document.title, window.location.origin + window.location.pathname);
+  // Handle OAuth redirect on component mount
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("token");
+    const role = params.get("role");
+
+    if (token && role) {
+      // Set authentication cookies
+      setAuthCookies(token, role);
+
+      // Redirect based on the user role
+      if (role === "admin") {
+        router.push("/admin");
+      } else {
+        router.push("/dashboard");
       }
+
+      // Clear the search params from the URL
+      window.history.replaceState(
+        {},
+        document.title,
+        window.location.origin + window.location.pathname
+      );
+    }
   }, [router]);
 
   return (
@@ -356,7 +372,8 @@ export default function SignupPage() {
                   type="button"
                   className="w-full"
                   onClick={() =>
-                    window.location.href = 'https://smartpantry-bc4q.onrender.com/auth/google/'
+                    (window.location.href =
+                      "https://smartpantry-bc4q.onrender.com/auth/google/")
                   }
                 >
                   <Image
@@ -366,9 +383,15 @@ export default function SignupPage() {
                   />
                   Continue with Google
                 </Button>
-                <Button variant="outline" type="button" className="w-full"  onClick={() =>
-                    window.location.href = 'https://smartpantry-bc4q.onrender.com/auth/facebook/redirect'
-                  }>
+                <Button
+                  variant="outline"
+                  type="button"
+                  className="w-full"
+                  onClick={() =>
+                    (window.location.href =
+                      "https://smartpantry-bc4q.onrender.com/auth/facebook/redirect")
+                  }
+                >
                   <Image
                     src={facebook}
                     alt="facebook Icon"

@@ -53,16 +53,28 @@ export default function Home() {
         </Link>
         <nav className="ml-auto flex gap-4 sm:gap-6">
           <Link
-            className="text-sm font-medium hover:underline underline-offset-4"
+            className="text-sm font-medium hover:underline underline-offset-4 1.5"
             href="/"
           >
             Home
           </Link>
           <Link
-            className="text-sm font-medium hover:underline underline-offset-4"
+            className="text-sm font-medium hover:underline underline-offset-4 py-1.5"
             href="/about"
           >
             About
+          </Link>
+          <Link
+            className="text-sm font-medium hover:underline underline-offset-4 py-1.5"
+            href="/login"
+          >
+            Login
+          </Link>
+          <Link
+            className="text-sm font-medium hover:underline underline-offset-4 text-white bg-green-600 rounded-md px-3 py-1.5"
+            href="/signup"
+          >
+            Sign Up
           </Link>
         </nav>
         <MobileNav />

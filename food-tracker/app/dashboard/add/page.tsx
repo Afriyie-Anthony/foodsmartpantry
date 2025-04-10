@@ -46,9 +46,9 @@ export default function AddItem() {
           <span className="ml-2 text-xl font-bold">FreshTrack</span>
         </Link>
         <nav className="ml-auto flex gap-4 sm:gap-6">
-          <Link className="text-sm font-medium hover:underline underline-offset-4" href="/">
+          {/* <Link className="text-sm font-medium hover:underline underline-offset-4" href="/">
             Home
-          </Link>
+          </Link> */}
           <Link className="text-sm font-medium hover:underline underline-offset-4" href="/dashboard">
             Dashboard
           </Link>

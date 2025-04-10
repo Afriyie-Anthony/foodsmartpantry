@@ -2,26 +2,17 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { Menu, Moon, ShoppingBasket, Sun, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { useTheme } from "next-themes";
-import { isAuthenticated, clearAuthCookies } from "@/lib/auth";
 
 export function MobileNav() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
-  const authenticated = isAuthenticated();
-  const router = useRouter();
-
-  const handleLogout = () => {
-    clearAuthCookies();
-    setOpen(false);
-    router.push("/");
-  };
 
   const routes = [
     {
@@ -29,24 +20,8 @@ export function MobileNav() {
       label: "Home",
     },
     {
-      href: "/dashboard",
-      label: "Dashboard",
-    },
-    {
-      href: "/recipes",
-      label: "Recipes",
-    },
-    {
-      href: "/shopping-list",
-      label: "Shopping List",
-    },
-    {
       href: "/about",
       label: "About",
-    },
-    {
-      href: "/profile",
-      label: "Profile",
     },
   ];
 
@@ -117,33 +92,6 @@ export function MobileNav() {
             </Link>
           ))}
         </nav>
-        <div className="mt-auto flex flex-col gap-2 pt-4 border-t dark:border-gray-800">
-          {authenticated ? (
-            <Button
-              variant="outline"
-              className="w-full text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700"
-              onClick={handleLogout}
-            >
-              Logout
-            </Button>
-          ) : (
-            <>
-              <Link href="/login" onClick={() => setOpen(false)}>
-                <Button
-                  variant="outline"
-                  className="w-full text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700"
-                >
-                  Login
-                </Button>
-              </Link>
-              <Link href="/signup" onClick={() => setOpen(false)}>
-                <Button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white dark:bg-emerald-600 dark:hover:bg-emerald-700">
-                  Sign Up
-                </Button>
-              </Link>
-            </>
-          )}
-        </div>
       </SheetContent>
     </Sheet>
   );

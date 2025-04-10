@@ -14,12 +14,8 @@ import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
 import { useState, useEffect } from "react";
 import { Footer } from "@/components/footer";
-import { isAuthenticated, clearAuthCookies } from "@/lib/auth";
-import { useRouter } from "next/navigation";
 
 export default function Home() {
-  const authenticated = isAuthenticated();
-  const router = useRouter();
   const images = [
     "/images/smallbg.jpg",
     "/images/food.jpg",
@@ -47,79 +43,28 @@ export default function Home() {
     return () => clearInterval(intervalId);
   }, [images.length]);
 
-  const handleLogout = () => {
-    clearAuthCookies();
-    router.push("/");
-  };
-
   return (
     <div className="flex flex-col min-h-screen bg-white dark:bg-gray-950">
       {/* Header with mobile navigation */}
       <header className="px-4 lg:px-6 h-16 flex items-center border-b bg-white dark:bg-gray-950 dark:border-gray-800 sticky top-0 z-30">
         <Link className="flex items-center justify-center" href="/">
-          <ShoppingBasket className="h-6 w-6 text-emerald-600 dark:text-emerald-500" />
-          <span className="ml-2 text-xl font-bold text-gray-900 dark:text-white">
-            FreshTrack
-          </span>
+          <ShoppingBasket className="h-6 w-6 text-green-600" />
+          <span className="ml-2 text-xl font-bold">FreshTrack</span>
         </Link>
-        <nav className="ml-auto hidden md:flex gap-4 sm:gap-6">
+        <nav className="ml-auto flex gap-4 sm:gap-6">
           <Link
-            className="text-sm font-medium text-gray-700 hover:text-emerald-600 dark:text-gray-300 dark:hover:text-emerald-500 hover:underline underline-offset-4"
-            href="/dashboard"
+            className="text-sm font-medium hover:underline underline-offset-4"
+            href="/"
           >
-            Dashboard
+            Home
           </Link>
           <Link
-            className="text-sm font-medium text-gray-700 hover:text-emerald-600 dark:text-gray-300 dark:hover:text-emerald-500 hover:underline underline-offset-4"
-            href="/admin"
-          >
-            adminDashboard
-          </Link>
-          <Link
-            className="text-sm font-medium text-gray-700 hover:text-emerald-600 dark:text-gray-300 dark:hover:text-emerald-500 hover:underline underline-offset-4"
-            href="/recipes"
-          >
-            Recipes
-          </Link>
-          <Link
-            className="text-sm font-medium text-gray-700 hover:text-emerald-600 dark:text-gray-300 dark:hover:text-emerald-500 hover:underline underline-offset-4"
+            className="text-sm font-medium hover:underline underline-offset-4"
             href="/about"
           >
             About
           </Link>
         </nav>
-        <div className="ml-auto md:ml-4 flex items-center gap-2">
-          {authenticated ? (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-gray-700 dark:text-gray-300"
-              onClick={handleLogout}
-            >
-              Logout
-            </Button>
-          ) : (
-            <>
-              <Link href="/login" className="hidden sm:inline-flex">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-gray-700 dark:text-gray-300"
-                >
-                  Login
-                </Button>
-              </Link>
-              <Link href="/signup" className="hidden sm:inline-flex">
-                <Button
-                  size="sm"
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white dark:bg-emerald-600 dark:hover:bg-emerald-700"
-                >
-                  Sign Up
-                </Button>
-              </Link>
-            </>
-          )}
-        </div>
         <MobileNav />
       </header>
       <main className="flex-1">
@@ -445,23 +390,6 @@ export default function Home() {
         </section>
       </main>
       <Footer />
-      {/* <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t bg-white dark:bg-gray-950 dark:border-gray-800">
-        <p className="text-xs text-gray-500 dark:text-gray-400">© 2024 FreshTrack. All rights reserved.</p>
-        <nav className="sm:ml-auto flex gap-4 sm:gap-6">
-          <Link
-            className="text-xs text-gray-500 hover:text-emerald-600 dark:text-gray-400 dark:hover:text-emerald-500 hover:underline underline-offset-4"
-            href="#"
-          >
-            Terms of Service
-          </Link>
-          <Link
-            className="text-xs text-gray-500 hover:text-emerald-600 dark:text-gray-400 dark:hover:text-emerald-500 hover:underline underline-offset-4"
-            href="#"
-          >
-            Privacy
-          </Link>
-        </nav>
-      </footer> */}
     </div>
   );
 }

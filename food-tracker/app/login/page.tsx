@@ -2,7 +2,7 @@
 
 import { useState, FormEvent, ChangeEvent, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff, Lock, Mail, ShoppingBasket } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -35,6 +35,7 @@ interface FormErrors {
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -47,13 +48,105 @@ export default function LoginPage() {
     password: "",
   });
 
-  // Check if user is already authenticated
+  // Handle OAuth redirect and normal authentication check
   useEffect(() => {
-    if (isAuthenticated()) {
-      // Redirect to dashboard if already logged in
-      router.push("/dashboard");
-    }
-  }, [router]);
+    const checkAuthAndRedirect = async () => {
+      try {
+        // Check URL search parameters
+        const params = new URLSearchParams(window.location.search);
+        console.log(
+          "URL search parameters:",
+          Object.fromEntries(params.entries())
+        );
+
+        // Check URL hash parameters (remove the leading '#' if present)
+        const hashParams = new URLSearchParams(
+          window.location.hash.replace(/^#/, "")
+        );
+        console.log(
+          "URL hash parameters:",
+          Object.fromEntries(hashParams.entries())
+        );
+
+        // Try to get auth data from both search params and hash
+        let token = searchParams.get("token") || hashParams.get("token");
+        let role = searchParams.get("role") || hashParams.get("role");
+        let error = searchParams.get("error") || hashParams.get("error");
+        let accessToken =
+          searchParams.get("access_token") || hashParams.get("access_token");
+
+        // If we have an access_token but no token, use the access_token
+        if (!token && accessToken) {
+          token = accessToken;
+        }
+
+        console.log("Final auth params:", { token, role, error });
+
+        // If there's an error from OAuth
+        if (error) {
+          console.error("OAuth error:", error);
+          toast({
+            variant: "destructive",
+            title: "Authentication Error",
+            description: error || "Failed to authenticate with Google",
+          });
+          return;
+        }
+
+        if (token) {
+          // If we have a token but no role, default to "user"
+          if (!role) {
+            role = "user";
+          }
+
+          console.log("Setting auth cookies with:", { token, role });
+
+          // Set authentication cookies
+          setAuthCookies(token, role);
+
+          // Show success message
+          toast({
+            title: "Login successful",
+            description: "Welcome back!",
+          });
+
+          // Clear URL parameters and hash
+          window.history.replaceState(
+            {},
+            document.title,
+            window.location.pathname
+          );
+
+          console.log("Redirecting based on role:", role);
+
+          // Redirect based on user role
+          if (role === "admin") {
+            router.push("/admin");
+          } else {
+            router.push("/dashboard");
+          }
+          return;
+        }
+
+        // If no OAuth parameters, check if already authenticated
+        if (isAuthenticated()) {
+          console.log(
+            "User is already authenticated, redirecting to dashboard"
+          );
+          router.push("/dashboard");
+        }
+      } catch (error) {
+        console.error("Detailed auth error:", error);
+        toast({
+          variant: "destructive",
+          title: "Authentication Error",
+          description: "Failed to process authentication. Please try again.",
+        });
+      }
+    };
+
+    checkAuthAndRedirect();
+  }, [router, searchParams, toast]);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -129,32 +222,6 @@ export default function LoginPage() {
       setIsLoading(false);
     }
   };
-
-  // Handle OAuth redirect on component mount
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get("token");
-    const role = params.get("role");
-
-    if (token && role) {
-      // Set authentication cookies
-      setAuthCookies(token, role);
-
-      // Redirect based on the user role
-      if (role === "admin") {
-        router.push("/admin");
-      } else {
-        router.push("/dashboard");
-      }
-
-      // Clear the search params from the URL
-      window.history.replaceState(
-        {},
-        document.title,
-        window.location.origin + window.location.pathname
-      );
-    }
-  }, [router]);
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -265,10 +332,27 @@ export default function LoginPage() {
                   variant="outline"
                   type="button"
                   className="w-full"
-                  onClick={() =>
-                    (window.location.href =
-                      "https://smartpantry-bc4q.onrender.com/auth/google/")
-                  }
+                  onClick={() => {
+                    try {
+                      const callbackUrl = `${window.location.origin}/login`;
+                      const googleAuthUrl = `https://smartpantry-bc4q.onrender.com/auth/google?redirect_uri=${encodeURIComponent(
+                        callbackUrl
+                      )}`;
+                      console.log(
+                        "Initiating Google auth with URL:",
+                        googleAuthUrl
+                      );
+                      window.location.href = googleAuthUrl;
+                    } catch (error) {
+                      console.error("Error initiating Google auth:", error);
+                      toast({
+                        variant: "destructive",
+                        title: "Error",
+                        description:
+                          "Failed to initiate Google login. Please try again.",
+                      });
+                    }
+                  }}
                 >
                   <Image
                     src={google}

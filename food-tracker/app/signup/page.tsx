@@ -373,7 +373,8 @@ export default function SignupPage() {
                   className="w-full"
                   onClick={() =>
                     (window.location.href =
-                      "https://smartpantry-bc4q.onrender.com/auth/google/")
+                      "https://smartpantry-bc4q.onrender.com/auth/google/callback?redirect_uri=" +
+                      encodeURIComponent(window.location.origin + "/signup"))
                   }
                 >
                   <Image

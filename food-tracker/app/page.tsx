@@ -12,8 +12,10 @@ import { Button } from "@/components/ui/button";
 import { MobileNav } from "@/components/mobile-nav";
 import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useState, useEffect } from "react"
 import { Footer } from "@/components/footer";
+
+
 
 export default function Home() {
   const images = [

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, FormEvent, ChangeEvent, useEffect } from "react";
+import { useState, useEffect, FormEvent, ChangeEvent } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff, Lock, Mail, ShoppingBasket } from "lucide-react";
@@ -37,106 +37,51 @@ export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
+
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [formData, setFormData] = useState<FormData>({
-    email: "",
-    password: "",
-  });
-  const [errors, setErrors] = useState<FormErrors>({
-    email: "",
-    password: "",
-  });
+  const [formData, setFormData] = useState<FormData>({ email: "", password: "" });
+  const [errors, setErrors] = useState<FormErrors>({ email: "", password: "" });
+  const [redirectUri, setRedirectUri] = useState("");
 
-  // Handle OAuth redirect and normal authentication check
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      setRedirectUri(encodeURIComponent(`${window.location.origin}/login`));
+    }
+
     const checkAuthAndRedirect = async () => {
       try {
-        // Check URL search parameters
         const params = new URLSearchParams(window.location.search);
-        console.log(
-          "URL search parameters:",
-          Object.fromEntries(params.entries())
-        );
+        const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
 
-        // Check URL hash parameters (remove the leading '#' if present)
-        const hashParams = new URLSearchParams(
-          window.location.hash.replace(/^#/, "")
-        );
-        console.log(
-          "URL hash parameters:",
-          Object.fromEntries(hashParams.entries())
-        );
+        const token = params.get("token") || hashParams.get("token");
+        const role = params.get("role") || hashParams.get("role") || "user";
+        const error = params.get("error") || hashParams.get("error");
 
-        // Try to get auth data from both search params and hash
-        let token = searchParams.get("token") || hashParams.get("token");
-        let role = searchParams.get("role") || hashParams.get("role");
-        let error = searchParams.get("error") || hashParams.get("error");
-
-        console.log("Final auth params:", { token, role, error });
-
-        // If there's an error from OAuth
         if (error) {
-          console.error("OAuth error:", error);
           toast({
             variant: "destructive",
             title: "Authentication Error",
-            description: error || "Failed to authenticate with Google",
+            description: error,
           });
           return;
         }
 
         if (token) {
-          // If we have a token but no role, default to "user"
-          if (!role) {
-            role = "user";
-          }
-
-          console.log("Setting auth cookies with:", { token, role });
-
-          // Set authentication cookies
           setAuthCookies(token, role);
+          toast({ title: "Login successful", description: "Welcome back!" });
+          window.history.replaceState({}, document.title, window.location.pathname);
 
-          // Show success message
-          toast({
-            title: "Login successful",
-            description: "Welcome back!",
-          });
-
-          // Clear URL parameters and hash
-          window.history.replaceState(
-            {},
-            document.title,
-            window.location.pathname
-          );
-
-          // Construct the full redirect URL
-          const returnUrl =
-            searchParams.get("returnUrl") || hashParams.get("returnUrl");
-          if (returnUrl) {
-            const fullRedirectUrl = `${window.location.origin}/${returnUrl}`;
-            console.log("Redirecting to:", fullRedirectUrl);
-            router.push(fullRedirectUrl);
-          } else {
-            // Default redirect if no return URL is provided
-            if (role === "admin") {
-              router.push("/admin");
-            } else {
-              router.push("/dashboard");
-            }
-          }
+          const returnUrl = params.get("returnUrl") || hashParams.get("returnUrl");
+          const redirectTo = returnUrl ? `/${returnUrl}` : role === "admin" ? "/admin" : "/dashboard";
+          router.push(redirectTo);
           return;
         }
 
-        // If no OAuth parameters, check if already authenticated
         if (isAuthenticated()) {
-          console.log(
-            "User is already authenticated, redirecting to dashboard"
-          );
           router.push("/dashboard");
         }
       } catch (error) {
-        console.error("Detailed auth error:", error);
         toast({
           variant: "destructive",
           title: "Authentication Error",
@@ -150,20 +95,15 @@ export default function LoginPage() {
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-
-    // Clear error when field is edited
+    setFormData((prev) => ({ ...prev, [name]: value }));
     if (errors[name as keyof FormErrors]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
     }
   };
 
   const validateForm = () => {
+    const newErrors: FormErrors = { email: "", password: "" };
     let isValid = true;
-    const newErrors = { ...errors };
 
     if (!formData.email.trim()) {
       newErrors.email = "Email is required";
@@ -184,34 +124,14 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
-    if (!validateForm()) {
-      return;
-    }
-
+    if (!validateForm()) return;
     setIsLoading(true);
 
     try {
-      // Call the login API
-      const response = await login({
-        email: formData.email,
-        password: formData.password,
-      });
-
-      // Set authentication cookies
+      const response = await login(formData);
       setAuthCookies(response.token, response.role);
-
-      toast({
-        title: "Login successful",
-        description: "Welcome back!",
-      });
-
-      // Redirect based on user role
-      if (response.role === "admin") {
-        router.push("/admin");
-      } else {
-        router.push("/dashboard");
-      }
+      toast({ title: "Login successful", description: "Welcome back!" });
+      router.push(response.role === "admin" ? "/admin" : "/dashboard");
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -223,6 +143,26 @@ export default function LoginPage() {
     }
   };
 
+  const handleOAuthLogin = (provider: "google" | "facebook") => {
+    if (!redirectUri) return;
+
+    try {
+      const baseUrl = "https://smartpantry-bc4q.onrender.com/auth";
+      const url =
+        provider === "google"
+          ? `${baseUrl}/google?redirect_uri=${redirectUri}`
+          : `${baseUrl}/facebook/redirect`;
+
+      window.location.href = url;
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: `Failed to initiate ${provider} login. Please try again.`,
+      });
+    }
+  };
+
   return (
     <div className="flex min-h-screen flex-col">
       <header className="px-4 lg:px-6 h-16 flex items-center border-b">
@@ -231,27 +171,15 @@ export default function LoginPage() {
           <span className="ml-2 text-xl font-bold">FreshTrack</span>
         </Link>
         <nav className="ml-auto flex gap-4 sm:gap-6">
-          <Link
-            className="text-sm font-medium hover:underline underline-offset-4"
-            href="/"
-          >
-            Home
-          </Link>
-          <Link
-            className="text-sm font-medium hover:underline underline-offset-4"
-            href="/about"
-          >
-            About
-          </Link>
+          <Link className="text-sm font-medium hover:underline underline-offset-4" href="/">Home</Link>
+          <Link className="text-sm font-medium hover:underline underline-offset-4" href="/about">About</Link>
         </nav>
       </header>
       <main className="flex-1 flex items-center justify-center p-4 md:p-8">
         <Card className="mx-auto max-w-md w-full">
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl font-bold">Login</CardTitle>
-            <CardDescription>
-              Enter your credentials to access your account
-            </CardDescription>
+            <CardDescription>Enter your credentials to access your account</CardDescription>
           </CardHeader>
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4">
@@ -269,9 +197,7 @@ export default function LoginPage() {
                     onChange={handleChange}
                   />
                 </div>
-                {errors.email && (
-                  <p className="text-sm text-red-500">{errors.email}</p>
-                )}
+                {errors.email && <p className="text-sm text-red-500">{errors.email}</p>}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
@@ -293,34 +219,19 @@ export default function LoginPage() {
                     className="absolute right-0 top-0 h-10 w-10 text-gray-400"
                     onClick={() => setShowPassword(!showPassword)}
                   >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
-                    <span className="sr-only">
-                      {showPassword ? "Hide password" : "Show password"}
-                    </span>
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    <span className="sr-only">{showPassword ? "Hide" : "Show"} password</span>
                   </Button>
                 </div>
-                {errors.password && (
-                  <p className="text-sm text-red-500">{errors.password}</p>
-                )}
+                {errors.password && <p className="text-sm text-red-500">{errors.password}</p>}
               </div>
             </CardContent>
             <CardFooter className="flex flex-col">
-              <Button
-                type="submit"
-                className="w-full bg-green-600 hover:bg-green-700"
-                disabled={isLoading}
-              >
+              <Button type="submit" className="w-full bg-green-600 hover:bg-green-700" disabled={isLoading}>
                 {isLoading ? "Logging in..." : "Login"}
               </Button>
               <div className="mt-4 text-center text-sm">
-                Don't have an account?{" "}
-                <Link href="/signup" className="text-green-600 hover:underline">
-                  Sign up
-                </Link>
+                Don't have an account? <Link href="/signup" className="text-green-600 hover:underline">Sign up</Link>
               </div>
               <div className="mt-6 flex items-center gap-2 w-full">
                 <Separator className="flex-1" />
@@ -328,54 +239,13 @@ export default function LoginPage() {
                 <Separator className="flex-1" />
               </div>
               <div className="mt-4 grid w-full gap-2">
-                <Button
-                  variant="outline"
-                  type="button"
-                  className="w-full"
-                  onClick={() => {
-                    try {
-                      const callbackUrl = `${window.location.origin}/login`;
-                      const googleAuthUrl = `https://smartpantry-bc4q.onrender.com/auth/google?redirect_uri=${encodeURIComponent(
-                        callbackUrl
-                      )}`;
-                      console.log(
-                        "Initiating Google auth with URL:",
-                        googleAuthUrl
-                      );
-                      window.location.href = googleAuthUrl;
-                    } catch (error) {
-                      console.error("Error initiating Google auth:", error);
-                      toast({
-                        variant: "destructive",
-                        title: "Error",
-                        description:
-                          "Failed to initiate Google login. Please try again.",
-                      });
-                    }
-                  }}
-                >
-                  <Image
-                    src={google}
-                    alt="Google Icon"
-                    className="w-[30px] rounded-[5%]"
-                  />
+                <Button variant="outline" type="button" className="w-full" onClick={() => handleOAuthLogin("google")}>
+                  <Image src={google} alt="Google Icon" className="w-[30px] rounded-[5%]" />
                   Continue with Google
                 </Button>
-                <Button
-                  variant="outline"
-                  type="button"
-                  className="w-full"
-                  onClick={() =>
-                    (window.location.href =
-                      "https://smartpantry-bc4q.onrender.com/auth/facebook/redirect")
-                  }
-                >
-                  <Image
-                    src={facebook}
-                    alt="facebook Icon"
-                    className="w-[30px] rounded-[5%]"
-                  />
-                  Continue with facebook
+                <Button variant="outline" type="button" className="w-full" onClick={() => handleOAuthLogin("facebook")}>
+                  <Image src={facebook} alt="Facebook Icon" className="w-[30px] rounded-[5%]" />
+                  Continue with Facebook
                 </Button>
               </div>
             </CardFooter>
@@ -383,17 +253,7 @@ export default function LoginPage() {
         </Card>
       </main>
       <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
-        <p className="text-xs text-gray-500">
-          © 2024 FreshTrack. All rights reserved.
-        </p>
-        <nav className="sm:ml-auto flex gap-4 sm:gap-6">
-          <Link className="text-xs hover:underline underline-offset-4" href="#">
-            Terms of Service
-          </Link>
-          <Link className="text-xs hover:underline underline-offset-4" href="#">
-            Privacy
-          </Link>
-        </nav>
+        <p className="text-xs text-gray-500">© 2024 FreshTrack</p>
       </footer>
     </div>
   );

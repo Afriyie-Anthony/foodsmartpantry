@@ -70,8 +70,8 @@ export default function ProfilePage() {
           <Link className="text-sm font-medium hover:underline underline-offset-4" href="/recipes">
             Recipes
           </Link>
-          <Link className="text-sm font-medium hover:underline underline-offset-4" href="/about">
-            About
+          <Link className="text-sm font-medium hover:underline underline-offset-4" href="/shopping-list">
+            Shopping List
           </Link>
         </nav>
       </header>

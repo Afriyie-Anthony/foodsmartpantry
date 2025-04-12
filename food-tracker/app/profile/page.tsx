@@ -33,12 +33,12 @@ export default function ProfilePage() {
     },
   })
 
-  const handleChange = (e) => {
+  const handleChange = (e:any) => {
     const { name, value } = e.target
     setProfileData((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleNotificationChange = (key, checked) => {
+  const handleNotificationChange = (key:any, checked:any) => {
     setProfileData((prev) => ({
       ...prev,
       notifications: {

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, FormEvent, ChangeEvent } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Lock, Mail, ShoppingBasket } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -35,7 +35,6 @@ interface FormErrors {
 
 export default function LoginPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { toast } = useToast();
 
   const [isLoading, setIsLoading] = useState(false);
@@ -91,7 +90,7 @@ export default function LoginPage() {
     };
 
     checkAuthAndRedirect();
-  }, [router, searchParams, toast]);
+  }, [router, toast]);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;

@@ -37,12 +37,18 @@ export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
+
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState<FormData>({ email: "", password: "" });
   const [errors, setErrors] = useState<FormErrors>({ email: "", password: "" });
+  const [redirectUri, setRedirectUri] = useState("");
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      setRedirectUri(encodeURIComponent(`${window.location.origin}/login`));
+    }
+
     const checkAuthAndRedirect = async () => {
       try {
         const params = new URLSearchParams(window.location.search);
@@ -138,12 +144,15 @@ export default function LoginPage() {
   };
 
   const handleOAuthLogin = (provider: "google" | "facebook") => {
+    if (!redirectUri) return;
+
     try {
       const baseUrl = "https://smartpantry-bc4q.onrender.com/auth";
-      const redirect_uri = encodeURIComponent(`${window.location.origin}/login`);
-      const url = provider === "google"
-        ? `${baseUrl}/google?redirect_uri=${redirect_uri}`
-        : `${baseUrl}/facebook/redirect`;
+      const url =
+        provider === "google"
+          ? `${baseUrl}/google?redirect_uri=${redirectUri}`
+          : `${baseUrl}/facebook/redirect`;
+
       window.location.href = url;
     } catch (error) {
       toast({
@@ -230,11 +239,11 @@ export default function LoginPage() {
                 <Separator className="flex-1" />
               </div>
               <div className="mt-4 grid w-full gap-2">
-                <Button variant="outline" type="button" className="w-full" onClick={() => handleOAuthLogin("google")}> 
+                <Button variant="outline" type="button" className="w-full" onClick={() => handleOAuthLogin("google")}>
                   <Image src={google} alt="Google Icon" className="w-[30px] rounded-[5%]" />
                   Continue with Google
                 </Button>
-                <Button variant="outline" type="button" className="w-full" onClick={() => handleOAuthLogin("facebook")}> 
+                <Button variant="outline" type="button" className="w-full" onClick={() => handleOAuthLogin("facebook")}>
                   <Image src={facebook} alt="Facebook Icon" className="w-[30px] rounded-[5%]" />
                   Continue with Facebook
                 </Button>

@@ -59,14 +59,76 @@ export default function SignupPage() {
     confirmPassword: "",
     agreeTerms: "",
   });
+  const [redirectUri, setRedirectUri] = useState("");
 
-  // Check if user is already authenticated
-  useEffect(() => {
-    if (isAuthenticated()) {
-      // Redirect to dashboard if already logged in
-      router.push("/dashboard");
+  const handleOAuthLogin = (provider: "google" | "facebook") => {
+    if (!redirectUri) return;
+
+    try {
+      const baseUrl = "https://smartpantry-bc4q.onrender.com/auth";
+      const url =
+        provider === "google"
+          ? `${baseUrl}/google?redirect_uri=${redirectUri}&returnUrl=${encodeURIComponent('/dashboard')}`
+          : `${baseUrl}/facebook/redirect?returnUrl=${encodeURIComponent('/dashboard')}`;
+
+      window.location.href = url;
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: `Failed to initiate ${provider} signup. Please try again.`,
+      });
     }
-  }, [router]);
+  };
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setRedirectUri(encodeURIComponent(`${window.location.origin}/signup`));
+    }
+
+    const checkAuthAndRedirect = async () => {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+
+        const token = params.get("token") || hashParams.get("token");
+        const role = params.get("role") || hashParams.get("role") || "user";
+        const error = params.get("error") || hashParams.get("error");
+
+        if (error) {
+          toast({
+            variant: "destructive",
+            title: "Authentication Error",
+            description: error,
+          });
+          return;
+        }
+
+        if (token) {
+          setAuthCookies(token, role);
+          toast({ title: "Signup successful", description: "Welcome to FreshTrack!" });
+          window.history.replaceState({}, document.title, window.location.pathname);
+
+          const returnUrl = params.get("returnUrl") || hashParams.get("returnUrl");
+          const redirectTo = returnUrl ? `/${returnUrl}` : role === "admin" ? "/admin" : "/dashboard";
+          router.push(redirectTo);
+          return;
+        }
+
+        if (isAuthenticated()) {
+          router.push("/dashboard");
+        }
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: "Authentication Error",
+          description: "Failed to process authentication. Please try again.",
+        });
+      }
+    };
+
+    checkAuthAndRedirect();
+  }, [router, toast]);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -165,31 +227,54 @@ export default function SignupPage() {
     }
   };
 
-  // Handle OAuth redirect on component mount
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get("token");
-    const role = params.get("role");
-
-    if (token && role) {
-      // Set authentication cookies
-      setAuthCookies(token, role);
-
-      // Redirect based on the user role
-      if (role === "admin") {
-        router.push("/admin");
-      } else {
-        router.push("/dashboard");
-      }
-
-      // Clear the search params from the URL
-      window.history.replaceState(
-        {},
-        document.title,
-        window.location.origin + window.location.pathname
-      );
+    if (typeof window !== "undefined") {
+      setRedirectUri(encodeURIComponent(`${window.location.origin}/signup`));
     }
-  }, [router]);
+
+    const checkAuthAndRedirect = async () => {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+
+        const token = params.get("token") || hashParams.get("token");
+        const role = params.get("role") || hashParams.get("role") || "user";
+        const error = params.get("error") || hashParams.get("error");
+
+        if (error) {
+          toast({
+            variant: "destructive",
+            title: "Authentication Error",
+            description: error,
+          });
+          return;
+        }
+
+        if (token) {
+          setAuthCookies(token, role);
+          toast({ title: "Signup successful", description: "Welcome to FreshTrack!" });
+          window.history.replaceState({}, document.title, window.location.pathname);
+
+          const returnUrl = params.get("returnUrl") || hashParams.get("returnUrl");
+          const redirectTo = returnUrl ? `/${returnUrl}` : role === "admin" ? "/admin" : "/dashboard";
+          router.push(redirectTo);
+          return;
+        }
+
+        if (isAuthenticated()) {
+          router.push("/dashboard");
+        }
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: "Authentication Error",
+          description: "Failed to process authentication. Please try again.",
+        });
+      }
+    };
+
+    checkAuthAndRedirect();
+  }, [router, toast]);
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -371,11 +456,7 @@ export default function SignupPage() {
                   variant="outline"
                   type="button"
                   className="w-full"
-                  onClick={() =>
-                    (window.location.href =
-                      "https://smartpantry-bc4q.onrender.com/auth/google/callback?redirect_uri=" +
-                      encodeURIComponent(window.location.origin + "/signup"))
-                  }
+                  onClick={() => handleOAuthLogin("google")}
                 >
                   <Image
                     src={google}
@@ -388,10 +469,7 @@ export default function SignupPage() {
                   variant="outline"
                   type="button"
                   className="w-full"
-                  onClick={() =>
-                    (window.location.href =
-                      "https://smartpantry-bc4q.onrender.com/auth/facebook/redirect")
-                  }
+                  onClick={() => handleOAuthLogin("facebook")}
                 >
                   <Image
                     src={facebook}

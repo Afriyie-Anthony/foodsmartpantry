@@ -150,8 +150,8 @@ export default function LoginPage() {
       const baseUrl = "https://smartpantry-bc4q.onrender.com/auth";
       const url =
         provider === "google"
-          ? `${baseUrl}/google?redirect_uri=${redirectUri}`
-          : `${baseUrl}/facebook/redirect`;
+          ? `${baseUrl}/google?redirect_uri=${redirectUri}&returnUrl=${encodeURIComponent('/dashboard')}`
+          : `${baseUrl}/facebook/redirect?returnUrl=${encodeURIComponent('/dashboard')}`;
 
       window.location.href = url;
     } catch (error) {

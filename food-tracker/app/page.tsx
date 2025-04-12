@@ -53,7 +53,7 @@ export default function Home() {
         </Link>
         <nav className="ml-auto flex gap-4 sm:gap-6">
           <Link
-            className="text-sm font-medium hover:underline underline-offset-4 1.5"
+            className="text-sm font-medium hover:underline underline-offset-4 py-1.5"
             href="/"
           >
             Home

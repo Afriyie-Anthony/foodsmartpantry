@@ -16,7 +16,7 @@ export default function AboutPage() {
           <Link className="text-sm font-medium hover:underline underline-offset-4" href="/">
             Home
           </Link>
-          <Link className="text-sm font-medium hover:underline underline-offset-4" href="/dashboard">
+          {/* <Link className="text-sm font-medium hover:underline underline-offset-4" href="/dashboard">
             Dashboard
           </Link>
           <Link className="text-sm font-medium hover:underline underline-offset-4" href="/recipes">
@@ -24,7 +24,7 @@ export default function AboutPage() {
           </Link>
           <Link className="text-sm font-medium hover:underline underline-offset-4" href="/shopping-list">
             Shopping List
-          </Link>
+          </Link> */}
         </nav>
         <MobileNav />
       </header>

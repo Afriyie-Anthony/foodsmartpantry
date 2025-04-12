@@ -72,13 +72,6 @@ export default function LoginPage() {
         let token = searchParams.get("token") || hashParams.get("token");
         let role = searchParams.get("role") || hashParams.get("role");
         let error = searchParams.get("error") || hashParams.get("error");
-        let accessToken =
-          searchParams.get("access_token") || hashParams.get("access_token");
-
-        // If we have an access_token but no token, use the access_token
-        if (!token && accessToken) {
-          token = accessToken;
-        }
 
         console.log("Final auth params:", { token, role, error });
 
@@ -117,13 +110,20 @@ export default function LoginPage() {
             window.location.pathname
           );
 
-          console.log("Redirecting based on role:", role);
-
-          // Redirect based on user role
-          if (role === "admin") {
-            router.push("/admin");
+          // Construct the full redirect URL
+          const returnUrl =
+            searchParams.get("returnUrl") || hashParams.get("returnUrl");
+          if (returnUrl) {
+            const fullRedirectUrl = `${window.location.origin}/${returnUrl}`;
+            console.log("Redirecting to:", fullRedirectUrl);
+            router.push(fullRedirectUrl);
           } else {
-            router.push("/dashboard");
+            // Default redirect if no return URL is provided
+            if (role === "admin") {
+              router.push("/admin");
+            } else {
+              router.push("/dashboard");
+            }
           }
           return;
         }

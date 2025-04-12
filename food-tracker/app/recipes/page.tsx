@@ -257,12 +257,12 @@ export default function RecipesPage() {
           <span className="ml-2 text-xl font-bold text-gray-900 dark:text-white">FreshTrack</span>
         </Link>
         <nav className="ml-auto hidden md:flex gap-4 sm:gap-6">
-          <Link
+          {/* <Link
             className="text-sm font-medium text-gray-700 hover:text-emerald-600 dark:text-gray-300 dark:hover:text-emerald-500 hover:underline underline-offset-4"
             href="/"
           >
             Home
-          </Link>
+          </Link> */}
           <Link
             className="text-sm font-medium text-gray-700 hover:text-emerald-600 dark:text-gray-300 dark:hover:text-emerald-500 hover:underline underline-offset-4"
             href="/dashboard"

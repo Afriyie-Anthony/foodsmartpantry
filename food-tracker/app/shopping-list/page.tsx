@@ -92,17 +92,20 @@ export default function ShoppingListPage() {
           <span className="ml-2 text-xl font-bold">FreshTrack</span>
         </Link>
         <nav className="ml-auto hidden md:flex gap-4 sm:gap-6">
-          <Link className="text-sm font-medium hover:underline underline-offset-4" href="/">
+          {/* <Link className="text-sm font-medium hover:underline underline-offset-4" href="/">
             Home
-          </Link>
+          </Link> */}
           <Link className="text-sm font-medium hover:underline underline-offset-4" href="/dashboard">
             Dashboard
           </Link>
           <Link className="text-sm font-medium hover:underline underline-offset-4" href="/recipes">
             Recipes
           </Link>
-          <Link className="text-sm font-medium hover:underline underline-offset-4" href="/about">
+          {/* <Link className="text-sm font-medium hover:underline underline-offset-4" href="/about">
             About
+          </Link> */}
+          <Link className="text-sm font-medium hover:underline underline-offset-4" href="/profile">
+            Profile
           </Link>
         </nav>
         <MobileNav />

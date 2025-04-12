@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import Sidebar from "@/components/ui/adminSideBar";
-import { InventoryItem, fetchItems, addItem, updateItem, deleteItem } from '../services/inventoryService'; // Adjust the import path based on your directory structure
+import { InventoryItem, fetchItems, addItem, updateItem, deleteItem } from '@/lib/api/inventory'; // Adjust the import path based on your directory structure
 
 export default function Inventory() {
   const [inventory, setInventory] = useState<InventoryItem[]>([]);

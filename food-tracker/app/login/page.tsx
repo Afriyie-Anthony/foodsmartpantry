@@ -17,8 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { login } from "@/lib/api/auth";
-import { setAuthCookies, isAuthenticated } from "@/lib/auth";
+import { isAuthenticated } from "@/lib/auth";
 import Image from "next/image";
 import google from "@/public/images/google.png";
 import facebook from "@/public/images/facebooklog.png";
@@ -32,6 +31,11 @@ interface FormErrors {
   email: string;
   password: string;
 }
+
+const setLocalAuthCookies = (token: string, role: string) => {
+  document.cookie = `token=${token}; path=/; secure; HttpOnly`;
+  document.cookie = `role=${role}; path=/; secure; HttpOnly`;
+};
 
 export default function LoginPage() {
   const router = useRouter();
@@ -51,12 +55,9 @@ export default function LoginPage() {
     const checkAuthAndRedirect = async () => {
       try {
         const params = new URLSearchParams(window.location.search);
-        const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
-
-        const token = params.get("token") || hashParams.get("token");
-        const role = params.get("role") || hashParams.get("role") || "user";
-        const error = params.get("error") || hashParams.get("error");
-
+        const token = params.get("token");
+        const role = params.get("role");
+        const error = params.get("error");
         if (error) {
           toast({
             variant: "destructive",
@@ -66,14 +67,15 @@ export default function LoginPage() {
           return;
         }
 
-        if (token) {
-          setAuthCookies(token, role);
+        if (token && role) {
+          setLocalAuthCookies(token, role);
           toast({ title: "Login successful", description: "Welcome back!" });
+
+          // Clear query parameters
           window.history.replaceState({}, document.title, window.location.pathname);
 
-          const returnUrl = params.get("returnUrl") || hashParams.get("returnUrl");
-          const redirectTo = returnUrl ? `/${returnUrl}` : role === "admin" ? "/admin" : "/dashboard";
-          router.push(redirectTo);
+          // Redirect based on role
+          router.push(role === "admin" ? "/admin/dashboard" : "/dashboard");
           return;
         }
 
@@ -127,10 +129,25 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const response = await login(formData);
-      setAuthCookies(response.token, response.role);
+      const response = await fetch("https://smartpantry-bc4q.onrender.com/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Invalid email or password");
+      }
+
+      const data = await response.json();
+      setLocalAuthCookies(data.token, data.role);
       toast({ title: "Login successful", description: "Welcome back!" });
-      router.push(response.role === "admin" ? "/admin" : "/dashboard");
+
+      // Redirect based on role
+      router.push(data.role === "admin" ? "/admin/dashboard" : "/dashboard");
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -149,8 +166,8 @@ export default function LoginPage() {
       const baseUrl = "https://smartpantry-bc4q.onrender.com/auth";
       const url =
         provider === "google"
-          ? `${baseUrl}/google?redirect_uri=${redirectUri}&returnUrl=${encodeURIComponent('/dashboard')}`
-          : `${baseUrl}/facebook/redirect?returnUrl=${encodeURIComponent('/dashboard')}`;
+          ? `${baseUrl}/google/redirect?redirect_uri=${redirectUri}`
+          : `${baseUrl}/facebook/redirect?redirect_uri=${redirectUri}`;
 
       window.location.href = url;
     } catch (error) {

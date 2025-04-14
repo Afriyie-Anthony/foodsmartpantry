@@ -59,6 +59,7 @@ export default function LoginPage() {
         const token = params.get("token");
         const role = params.get("role");
         const error = params.get("error");
+
         if (error) {
           toast({
             variant: "destructive",
@@ -69,10 +70,8 @@ export default function LoginPage() {
         }
 
         if (token && role) {
-          setLocalAuthCookies(token, role);
+          setAuthCookies(token, role);
           toast({ title: "Login successful", description: "Welcome back!" });
-
-          // Clear query parameters
           window.history.replaceState({}, document.title, window.location.pathname);
 
           const returnUrl = params.get("returnUrl");
@@ -89,7 +88,7 @@ export default function LoginPage() {
     };
 
     checkAuthAndRedirect();
-  }, [router, URLSearchParams, toast]);
+  }, [router, toast]);
 
   useEffect(() => {
     const handleOAuthResponse = async () => {
@@ -211,46 +210,15 @@ export default function LoginPage() {
   };
 
   const handleOAuthLogin = (provider: "google" | "facebook") => {
-    const redirectUri = encodeURIComponent(`${window.location.origin}/login`);
-    const baseUrl = "https://smartpantry-bc4q.onrender.com/auth";
-    
     try {
-      if (provider === "google") {
-        setIsOAuthLoading(true);
-        // Make direct request to get tokens
-        fetch(`${baseUrl}/google/callback`, {
-          method: "GET",
-          credentials: "include",
-        })
-        .then(response => response.json())
-        .then(data => {
-          if (data.accessToken && data.role) {
-            setAuthCookies(data.accessToken, data.role);
-            toast({
-              title: "Login successful",
-              description: "Welcome back!",
-            });
-            router.push(data.role === "admin" ? "/admin" : "/dashboard");
-          } else {
-            throw new Error("Invalid authentication response");
-          }
-        })
-        .catch(error => {
-          toast({
-            variant: "destructive",
-            title: "Authentication Error",
-            description: error.message || "Failed to complete authentication",
-          });
-        })
-        .finally(() => {
-          setIsOAuthLoading(false);
-        });
-      } else {
-        // Facebook flow remains the same
-        window.location.href = `${baseUrl}/facebook/redirect?signup=false`;
-      }
+      const baseUrl = "https://smartpantry-bc4q.onrender.com/auth";
+      const url =
+        provider === "google"
+          ? `${baseUrl}/google/redirect?redirect_uri=${redirectUri}`
+          : `${baseUrl}/facebook/redirect?redirect_uri=${redirectUri}`;
+
+      window.location.href = url;
     } catch (error) {
-      setIsOAuthLoading(false);
       toast({
         variant: "destructive",
         title: "Error",

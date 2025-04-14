@@ -23,7 +23,6 @@ import { setAuthCookies, isAuthenticated } from "@/lib/auth";
 import Image from "next/image";
 import google from "@/public/images/google.png";
 import facebook from "@/public/images/facebooklog.png";
-import router from "next/router";
 
 interface FormData {
   name: string;
@@ -45,7 +44,9 @@ export default function SignupPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [isOAuthLoading, setIsOAuthLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [redirectUri, setRedirectUri] = useState("");
   const [formData, setFormData] = useState<FormData>({
     name: "",
     email: "",
@@ -60,28 +61,6 @@ export default function SignupPage() {
     confirmPassword: "",
     agreeTerms: "",
   });
-  const [isOAuthLoading, setIsOAuthLoading] = useState(false);
-  const [redirectUri, setRedirectUri] = useState("");
-
-  const handleOAuthLogin = (provider: "google" | "facebook") => {
-    if (!redirectUri) return;
-
-    try {
-      const baseUrl = "https://smartpantry-bc4q.onrender.com/auth";
-      const url =
-        provider === "google"
-          ? `${baseUrl}/google/redirect?redirect_uri=${redirectUri}`
-          : `${baseUrl}/facebook/redirect?redirect_uri=${redirectUri}`;
-
-      window.location.href = url;
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: `Failed to initiate ${provider} signup. Please try again.`,
-      });
-    }
-  };
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -91,11 +70,9 @@ export default function SignupPage() {
     const checkAuthAndRedirect = async () => {
       try {
         const params = new URLSearchParams(window.location.search);
-        const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
-
-        const token = params.get("token") || hashParams.get("token");
-        const role = params.get("role") || hashParams.get("role") || "user";
-        const error = params.get("error") || hashParams.get("error");
+        const token = params.get("token");
+        const role = params.get("role");
+        const error = params.get("error");
 
         if (error) {
           toast({
@@ -106,19 +83,15 @@ export default function SignupPage() {
           return;
         }
 
-        if (token) {
+        if (token && role) {
           setAuthCookies(token, role);
           toast({ title: "Signup successful", description: "Welcome to FreshTrack!" });
           window.history.replaceState({}, document.title, window.location.pathname);
 
-          const returnUrl = params.get("returnUrl") || hashParams.get("returnUrl");
+          const returnUrl = params.get("returnUrl");
           const redirectTo = returnUrl ? `/${returnUrl}` : role === "admin" ? "/admin" : "/dashboard";
           router.push(redirectTo);
           return;
-        }
-
-        if (isAuthenticated()) {
-          router.push("/dashboard");
         }
       } catch (error) {
         toast({
@@ -221,99 +194,16 @@ export default function SignupPage() {
     }
   };
 
-  useEffect(() => {
-    const handleOAuthResponse = async () => {
-      try {
-        const params = new URLSearchParams(window.location.search);
-        const code = params.get("code");
-        
-        if (code) {
-          // Exchange code for token
-          const response = await fetch("https://smartpantry-bc4q.onrender.com/auth/google/callback", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              code,
-              redirect_uri: window.location.origin + "/signup",
-            }),
-          });
-
-          if (!response.ok) {
-            throw new Error("Failed to authenticate with Google");
-          }
-
-          const data = await response.json();
-          
-          if (data.accessToken && data.role) {
-            // Set authentication cookies
-            setAuthCookies(data.accessToken, data.role);
-
-            toast({
-              title: "Account created successfully",
-              description: "Welcome to FreshTrack!",
-            });
-
-            // Redirect based on user role
-            router.push(data.role === "admin" ? "/admin" : "/dashboard");
-          } else {
-            throw new Error("Invalid authentication response");
-          }
-        }
-      } catch (error: any) {
-        toast({
-          variant: "destructive",
-          title: "Authentication Error",
-          description: error.message || "Failed to complete authentication",
-        });
-      }
-    };
-
-    handleOAuthResponse();
-  }, [router, toast]);
-
   const handleOAuthSignup = (provider: "google" | "facebook") => {
-    const redirectUri = encodeURIComponent(`${window.location.origin}/signup`);
-    const baseUrl = "https://smartpantry-bc4q.onrender.com/auth";
-    
     try {
-      if (provider === "google") {
-        setIsOAuthLoading(true);
-        // Make direct request to get tokens
-        fetch(`${baseUrl}/google/callback`, {
-          method: "GET",
-          credentials: "include",
-        })
-        .then(response => response.json())
-        .then(data => {
-          if (data.accessToken && data.role) {
-            setAuthCookies(data.accessToken, data.role);
-            toast({
-              title: "Account created successfully",
-              description: "Welcome to FreshTrack!",
-            });
-            router.push(data.role === "admin" ? "/admin" : "/dashboard");
-          } else {
-            throw new Error("Invalid authentication response");
-          }
-        })
-        .catch(error => {
-          toast({
-            variant: "destructive",
-            title: "Authentication Error",
-            description: error.message || "Failed to complete authentication",
-          });
-        })
-        .finally(() => {
-          setIsOAuthLoading(false);
-        });
-      } else {
-        // Facebook flow remains the same
-        window.location.href = `${baseUrl}/facebook/redirect?signup=true`;
-      }
+      const baseUrl = "https://smartpantry-bc4q.onrender.com/auth";
+      const url =
+        provider === "google"
+          ? `${baseUrl}/google/redirect?redirect_uri=${redirectUri}`
+          : `${baseUrl}/facebook/redirect?redirect_uri=${redirectUri}`;
+
+      window.location.href = url;
     } catch (error) {
-      setIsOAuthLoading(false);
       toast({
         variant: "destructive",
         title: "Error",
@@ -321,53 +211,6 @@ export default function SignupPage() {
       });
     }
   };
-    if (typeof window !== "undefined") {
-      setRedirectUri(encodeURIComponent(`${window.location.origin}/signup`));
-    }
-
-    const checkAuthAndRedirect = async () => {
-      try {
-        const params = new URLSearchParams(window.location.search);
-        const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
-
-        const token = params.get("token") || hashParams.get("token");
-        const role = params.get("role") || hashParams.get("role") || "user";
-        const error = params.get("error") || hashParams.get("error");
-
-        if (error) {
-          toast({
-            variant: "destructive",
-            title: "Authentication Error",
-            description: error,
-          });
-          return;
-        }
-
-        if (token) {
-          setAuthCookies(token, role);
-          toast({ title: "Signup successful", description: "Welcome to FreshTrack!" });
-          window.history.replaceState({}, document.title, window.location.pathname);
-
-          const returnUrl = params.get("returnUrl") || hashParams.get("returnUrl");
-          const redirectTo = returnUrl ? `/${returnUrl}` : role === "admin" ? "/admin" : "/dashboard";
-          router.push(redirectTo);
-          return;
-        }
-
-        if (isAuthenticated()) {
-          router.push("/dashboard");
-        }
-      } catch (error) {
-        toast({
-          variant: "destructive",
-          title: "Authentication Error",
-          description: "Failed to process authentication. Please try again.",
-        });
-      }
-    };
-    useEffect(() => {
-      checkAuthAndRedirect();
-    }, [router, toast]);
 
   return (
     <div className="flex min-h-screen flex-col">

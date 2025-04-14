@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { isAuthenticated } from "@/lib/auth";
+import { isAuthenticated, setAuthCookies } from "@/lib/auth";
 import Image from "next/image";
 import google from "@/public/images/google.png";
 import facebook from "@/public/images/facebooklog.png";
@@ -75,7 +75,7 @@ export default function LoginPage() {
           // Clear query parameters
           window.history.replaceState({}, document.title, window.location.pathname);
 
-          const returnUrl = params.get("returnUrl") || hashParams.get("returnUrl");
+          const returnUrl = params.get("returnUrl");
           const redirectTo = returnUrl ? `/${returnUrl}` : role === "admin" ? "/admin" : "/dashboard";
           router.push(redirectTo);
         }
@@ -89,7 +89,7 @@ export default function LoginPage() {
     };
 
     checkAuthAndRedirect();
-  }, [router, searchParams, toast]);
+  }, [router, URLSearchParams, toast]);
 
   useEffect(() => {
     const handleOAuthResponse = async () => {

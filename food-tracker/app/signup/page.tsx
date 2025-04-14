@@ -17,12 +17,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useToast } from "@/hooks/use-toast";
+import { toast, useToast } from "@/hooks/use-toast";
 import { signup } from "@/lib/api/auth";
 import { setAuthCookies, isAuthenticated } from "@/lib/auth";
 import Image from "next/image";
 import google from "@/public/images/google.png";
 import facebook from "@/public/images/facebooklog.png";
+import router from "next/router";
 
 interface FormData {
   name: string;
@@ -364,9 +365,9 @@ export default function SignupPage() {
         });
       }
     };
-
-    checkAuthAndRedirect();
-  }, [router, toast]);
+    useEffect(() => {
+      checkAuthAndRedirect();
+    }, [router, toast]);
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -550,7 +551,6 @@ export default function SignupPage() {
                   className="w-full"
                   onClick={() => handleOAuthSignup("google")}
                   disabled={isOAuthLoading}
-                  onClick={() => handleOAuthLogin("google")}
                 >
                   <Image
                     src={google}
@@ -564,7 +564,7 @@ export default function SignupPage() {
                   type="button"
                   className="w-full"
                   onClick={() => handleOAuthSignup("facebook")}
-                  onClick={() => handleOAuthLogin("facebook")}
+                  disabled={isOAuthLoading}
                 >
                   <Image
                     src={facebook}

@@ -33,12 +33,12 @@ export default function ProfilePage() {
     },
   })
 
-  const handleChange = (e) => {
+  const handleChange = (e:any) => {
     const { name, value } = e.target
     setProfileData((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleNotificationChange = (key, checked) => {
+  const handleNotificationChange = (key:any, checked:any) => {
     setProfileData((prev) => ({
       ...prev,
       notifications: {
@@ -70,9 +70,9 @@ export default function ProfilePage() {
           <Link className="text-sm font-medium hover:underline underline-offset-4" href="/recipes">
             Recipes
           </Link>
-          <Link className="text-sm font-medium hover:underline underline-offset-4" href="/shopping-list">
-            Shopping List
-          </Link>
+          {/* <Link className="text-sm font-medium hover:underline underline-offset-4" href="/about">
+            About
+          </Link> */}
         </nav>
       </header>
       <main className="flex-1 py-6 px-4 md:px-6">

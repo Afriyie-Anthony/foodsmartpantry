@@ -93,6 +93,7 @@ export default function ShoppingListPage() {
         </Link>
         <nav className="ml-auto hidden md:flex gap-4 sm:gap-6">
           {/* <Link className="text-sm font-medium hover:underline underline-offset-4" href="/">
+          {/* <Link className="text-sm font-medium hover:underline underline-offset-4" href="/">
             Home
           </Link> */}
           <Link className="text-sm font-medium hover:underline underline-offset-4" href="/dashboard">
@@ -101,12 +102,12 @@ export default function ShoppingListPage() {
           <Link className="text-sm font-medium hover:underline underline-offset-4" href="/recipes">
             Recipes
           </Link>
-          <Link className="text-sm font-medium hover:underline underline-offset-4" href="/profile">
-            Profile
-          </Link>
           {/* <Link className="text-sm font-medium hover:underline underline-offset-4" href="/about">
             About
           </Link> */}
+          <Link className="text-sm font-medium hover:underline underline-offset-4" href="/profile">
+            Profile
+          </Link>
         </nav>
         <MobileNav />
       </header>

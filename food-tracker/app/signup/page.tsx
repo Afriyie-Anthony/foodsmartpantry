@@ -60,6 +60,76 @@ export default function SignupPage() {
     agreeTerms: "",
   });
   const [isOAuthLoading, setIsOAuthLoading] = useState(false);
+  const [redirectUri, setRedirectUri] = useState("");
+
+  const handleOAuthLogin = (provider: "google" | "facebook") => {
+    if (!redirectUri) return;
+
+    try {
+      const baseUrl = "https://smartpantry-bc4q.onrender.com/auth";
+      const url =
+        provider === "google"
+          ? `${baseUrl}/google/redirect?redirect_uri=${redirectUri}`
+          : `${baseUrl}/facebook/redirect?redirect_uri=${redirectUri}`;
+
+      window.location.href = url;
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: `Failed to initiate ${provider} signup. Please try again.`,
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setRedirectUri(encodeURIComponent(`${window.location.origin}/signup`));
+    }
+
+    const checkAuthAndRedirect = async () => {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+
+        const token = params.get("token") || hashParams.get("token");
+        const role = params.get("role") || hashParams.get("role") || "user";
+        const error = params.get("error") || hashParams.get("error");
+
+        if (error) {
+          toast({
+            variant: "destructive",
+            title: "Authentication Error",
+            description: error,
+          });
+          return;
+        }
+
+        if (token) {
+          setAuthCookies(token, role);
+          toast({ title: "Signup successful", description: "Welcome to FreshTrack!" });
+          window.history.replaceState({}, document.title, window.location.pathname);
+
+          const returnUrl = params.get("returnUrl") || hashParams.get("returnUrl");
+          const redirectTo = returnUrl ? `/${returnUrl}` : role === "admin" ? "/admin" : "/dashboard";
+          router.push(redirectTo);
+          return;
+        }
+
+        if (isAuthenticated()) {
+          router.push("/dashboard");
+        }
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: "Authentication Error",
+          description: "Failed to process authentication. Please try again.",
+        });
+      }
+    };
+
+    checkAuthAndRedirect();
+  }, [router, toast]);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -114,51 +184,42 @@ export default function SignupPage() {
     return isValid;
   };
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const handleSignup = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
-    if (!validateForm()) {
-      return;
-    }
-
+    if (!validateForm()) return;
     setIsLoading(true);
 
     try {
-      // Call the signup API
-      const response = await signup({
-        name: formData.name,
-        email: formData.email,
-        password: formData.password,
+      const response = await fetch("https://smartpantry-bc4q.onrender.com/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
       });
 
-      // Set authentication cookies
-      setAuthCookies(response.token, response.role);
-
-      toast({
-        title: "Account created successfully",
-        description: response.message || "Welcome to FreshTrack!",
-      });
-
-      // Redirect based on user role
-      if (response.role === "admin") {
-        router.push("/admin");
-      } else {
-        router.push("/dashboard");
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Signup failed. Please try again.");
       }
+
+      const data = await response.json();
+      setAuthCookies(data.token, data.role);
+      toast({ title: "Signup successful", description: "Welcome to FreshTrack!" });
+
+      // Redirect based on role
+      router.push(data.role === "admin" ? "/admin/dashboard" : "/dashboard");
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Registration failed",
-        description:
-          error.message ||
-          "An error occurred during registration. Please try again.",
+        title: "Signup failed",
+        description: error.message || "Signup failed. Please try again.",
       });
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Handle OAuth redirect on component mount
   useEffect(() => {
     const handleOAuthResponse = async () => {
       try {
@@ -259,6 +320,53 @@ export default function SignupPage() {
       });
     }
   };
+    if (typeof window !== "undefined") {
+      setRedirectUri(encodeURIComponent(`${window.location.origin}/signup`));
+    }
+
+    const checkAuthAndRedirect = async () => {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+
+        const token = params.get("token") || hashParams.get("token");
+        const role = params.get("role") || hashParams.get("role") || "user";
+        const error = params.get("error") || hashParams.get("error");
+
+        if (error) {
+          toast({
+            variant: "destructive",
+            title: "Authentication Error",
+            description: error,
+          });
+          return;
+        }
+
+        if (token) {
+          setAuthCookies(token, role);
+          toast({ title: "Signup successful", description: "Welcome to FreshTrack!" });
+          window.history.replaceState({}, document.title, window.location.pathname);
+
+          const returnUrl = params.get("returnUrl") || hashParams.get("returnUrl");
+          const redirectTo = returnUrl ? `/${returnUrl}` : role === "admin" ? "/admin" : "/dashboard";
+          router.push(redirectTo);
+          return;
+        }
+
+        if (isAuthenticated()) {
+          router.push("/dashboard");
+        }
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: "Authentication Error",
+          description: "Failed to process authentication. Please try again.",
+        });
+      }
+    };
+
+    checkAuthAndRedirect();
+  }, [router, toast]);
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -292,7 +400,7 @@ export default function SignupPage() {
               Enter your information to create an account
             </CardDescription>
           </CardHeader>
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSignup}>
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Full Name</Label>
@@ -422,7 +530,7 @@ export default function SignupPage() {
                 className="w-full bg-green-600 hover:bg-green-700"
                 disabled={isLoading}
               >
-                {isLoading ? "Creating account..." : "Create account"}
+                {isLoading ? "Signing up..." : "Sign Up"}
               </Button>
               <div className="mt-4 text-center text-sm">
                 Already have an account?{" "}
@@ -442,6 +550,7 @@ export default function SignupPage() {
                   className="w-full"
                   onClick={() => handleOAuthSignup("google")}
                   disabled={isOAuthLoading}
+                  onClick={() => handleOAuthLogin("google")}
                 >
                   <Image
                     src={google}
@@ -455,6 +564,7 @@ export default function SignupPage() {
                   type="button"
                   className="w-full"
                   onClick={() => handleOAuthSignup("facebook")}
+                  onClick={() => handleOAuthLogin("facebook")}
                 >
                   <Image
                     src={facebook}

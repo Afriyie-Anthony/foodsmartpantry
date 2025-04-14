@@ -193,11 +193,11 @@ export default function RecipesPage() {
   const dietTypes = Array.from(new Set(recipeData.flatMap((recipe) => recipe.dietType)))
   const allIngredients = Array.from(new Set(recipeData.flatMap((recipe) => recipe.ingredients)))
 
-  const toggleFilter = (category, value) => {
+  const toggleFilter = (category:any, value:any) => {
     setFilters((prev) => {
       const updated = { ...prev }
       if (updated[category].includes(value)) {
-        updated[category] = updated[category].filter((item) => item !== value)
+        updated[category] = updated[category].filter((item:any) => item !== value)
       } else {
         updated[category] = [...updated[category], value]
       }
@@ -205,14 +205,14 @@ export default function RecipesPage() {
     })
   }
 
-  const toggleFavorite = (recipeId) => {
-    setFavorites((prev) => {
+  const toggleFavorite = (recipeId:any) => {
+    setFavorites((prev:any) => {
       if (prev.includes(recipeId)) {
         toast({
           title: "Removed from favorites",
           description: "Recipe has been removed from your favorites.",
         })
-        return prev.filter((id) => id !== recipeId)
+        return prev.filter((id:any) => id !== recipeId)
       } else {
         toast({
           title: "Added to favorites",

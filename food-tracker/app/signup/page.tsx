@@ -59,14 +59,7 @@ export default function SignupPage() {
     confirmPassword: "",
     agreeTerms: "",
   });
-
-  // Check if user is already authenticated
-  useEffect(() => {
-    if (isAuthenticated()) {
-      // Redirect to dashboard if already logged in
-      router.push("/dashboard");
-    }
-  }, [router]);
+  const [isOAuthLoading, setIsOAuthLoading] = useState(false);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -167,29 +160,105 @@ export default function SignupPage() {
 
   // Handle OAuth redirect on component mount
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get("token");
-    const role = params.get("role");
+    const handleOAuthResponse = async () => {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const code = params.get("code");
+        
+        if (code) {
+          // Exchange code for token
+          const response = await fetch("https://smartpantry-bc4q.onrender.com/auth/google/callback", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              code,
+              redirect_uri: window.location.origin + "/signup",
+            }),
+          });
 
-    if (token && role) {
-      // Set authentication cookies
-      setAuthCookies(token, role);
+          if (!response.ok) {
+            throw new Error("Failed to authenticate with Google");
+          }
 
-      // Redirect based on the user role
-      if (role === "admin") {
-        router.push("/admin");
-      } else {
-        router.push("/dashboard");
+          const data = await response.json();
+          
+          if (data.accessToken && data.role) {
+            // Set authentication cookies
+            setAuthCookies(data.accessToken, data.role);
+
+            toast({
+              title: "Account created successfully",
+              description: "Welcome to FreshTrack!",
+            });
+
+            // Redirect based on user role
+            router.push(data.role === "admin" ? "/admin" : "/dashboard");
+          } else {
+            throw new Error("Invalid authentication response");
+          }
+        }
+      } catch (error: any) {
+        toast({
+          variant: "destructive",
+          title: "Authentication Error",
+          description: error.message || "Failed to complete authentication",
+        });
       }
+    };
 
-      // Clear the search params from the URL
-      window.history.replaceState(
-        {},
-        document.title,
-        window.location.origin + window.location.pathname
-      );
+    handleOAuthResponse();
+  }, [router, toast]);
+
+  const handleOAuthSignup = (provider: "google" | "facebook") => {
+    const redirectUri = encodeURIComponent(`${window.location.origin}/signup`);
+    const baseUrl = "https://smartpantry-bc4q.onrender.com/auth";
+    
+    try {
+      if (provider === "google") {
+        setIsOAuthLoading(true);
+        // Make direct request to get tokens
+        fetch(`${baseUrl}/google/callback`, {
+          method: "GET",
+          credentials: "include",
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.accessToken && data.role) {
+            setAuthCookies(data.accessToken, data.role);
+            toast({
+              title: "Account created successfully",
+              description: "Welcome to FreshTrack!",
+            });
+            router.push(data.role === "admin" ? "/admin" : "/dashboard");
+          } else {
+            throw new Error("Invalid authentication response");
+          }
+        })
+        .catch(error => {
+          toast({
+            variant: "destructive",
+            title: "Authentication Error",
+            description: error.message || "Failed to complete authentication",
+          });
+        })
+        .finally(() => {
+          setIsOAuthLoading(false);
+        });
+      } else {
+        // Facebook flow remains the same
+        window.location.href = `${baseUrl}/facebook/redirect?signup=true`;
+      }
+    } catch (error) {
+      setIsOAuthLoading(false);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: `Failed to initiate ${provider} signup. Please try again.`,
+      });
     }
-  }, [router]);
+  };
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -371,34 +440,28 @@ export default function SignupPage() {
                   variant="outline"
                   type="button"
                   className="w-full"
-                  onClick={() =>
-                    (window.location.href =
-                      "https://smartpantry-bc4q.onrender.com/auth/google/callback?redirect_uri=" +
-                      encodeURIComponent(window.location.origin + "/signup"))
-                  }
+                  onClick={() => handleOAuthSignup("google")}
+                  disabled={isOAuthLoading}
                 >
                   <Image
                     src={google}
                     alt="Google Icon"
                     className="w-[30px] rounded-[5%]"
                   />
-                  Continue with Google
+                  {isOAuthLoading ? "Authenticating..." : "Continue with Google"}
                 </Button>
                 <Button
                   variant="outline"
                   type="button"
                   className="w-full"
-                  onClick={() =>
-                    (window.location.href =
-                      "https://smartpantry-bc4q.onrender.com/auth/facebook/redirect")
-                  }
+                  onClick={() => handleOAuthSignup("facebook")}
                 >
                   <Image
                     src={facebook}
-                    alt="facebook Icon"
+                    alt="Facebook Icon"
                     className="w-[30px] rounded-[5%]"
                   />
-                  Continue with facebook
+                  Continue with Facebook
                 </Button>
               </div>
             </CardFooter>

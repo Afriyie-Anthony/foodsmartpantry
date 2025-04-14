@@ -12,16 +12,6 @@ export function middleware(request: NextRequest) {
   const token = request.cookies.get("token")?.value;
   const role = request.cookies.get("role")?.value;
 
-  // Redirect authenticated users away from auth pages (login/signup)
-  if (authRoutes.includes(pathname) && token) {
-    // If user is admin, redirect to admin dashboard
-    if (role === "admin") {
-      return NextResponse.redirect(new URL("/admin", request.url));
-    }
-    // Otherwise redirect to user dashboard
-    return NextResponse.redirect(new URL("/dashboard", request.url));
-  }
-
   // Protect dashboard and admin routes
   if (protectedRoutes.includes(pathname)) {
     // If no token, redirect to login

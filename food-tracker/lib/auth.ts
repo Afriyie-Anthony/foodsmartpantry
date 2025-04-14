@@ -16,8 +16,16 @@ export const clearAuthCookies = () => {
 };
 
 // Check if user is authenticated
-export const isAuthenticated = () => {
+export const isAuthenticated = (ignorePaths = false) => {
   if (typeof document === "undefined") return false;
+
+  // If ignorePaths is false, check if we're on login or signup page
+  if (!ignorePaths) {
+    const currentPath = window.location.pathname;
+    if (currentPath === '/login' || currentPath === '/signup') {
+      return false;
+    }
+  }
 
   const cookies = document.cookie.split(";");
   const tokenCookie = cookies.find((cookie) =>

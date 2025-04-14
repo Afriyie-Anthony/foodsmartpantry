@@ -43,6 +43,7 @@ export default function LoginPage() {
   const [formData, setFormData] = useState<FormData>({ email: "", password: "" });
   const [errors, setErrors] = useState<FormErrors>({ email: "", password: "" });
   const [redirectUri, setRedirectUri] = useState("");
+  const [isOAuthLoading, setIsOAuthLoading] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -75,11 +76,6 @@ export default function LoginPage() {
           const returnUrl = params.get("returnUrl") || hashParams.get("returnUrl");
           const redirectTo = returnUrl ? `/${returnUrl}` : role === "admin" ? "/admin" : "/dashboard";
           router.push(redirectTo);
-          return;
-        }
-
-        if (isAuthenticated()) {
-          router.push("/dashboard");
         }
       } catch (error) {
         toast({
@@ -92,6 +88,60 @@ export default function LoginPage() {
 
     checkAuthAndRedirect();
   }, [router, searchParams, toast]);
+
+  useEffect(() => {
+    const handleOAuthResponse = async () => {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const code = params.get("code");
+        
+        if (code) {
+          // Exchange code for token
+          const response = await fetch("https://smartpantry-bc4q.onrender.com/auth/google/callback", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              code,
+              redirect_uri: window.location.origin + "/login",
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error("Failed to authenticate with Google");
+          }
+
+          const data = await response.json();
+          
+          if (data.accessToken && data.role) {
+            // Set authentication cookies
+            setAuthCookies(data.accessToken, data.role);
+
+            toast({
+              title: "Login successful",
+              description: "Welcome back!",
+            });
+
+            // Get return URL if it exists
+            const returnUrl = params.get("returnUrl");
+            const redirectTo = returnUrl ? `/${returnUrl}` : data.role === "admin" ? "/admin" : "/dashboard";
+            router.push(redirectTo);
+          } else {
+            throw new Error("Invalid authentication response");
+          }
+        }
+      } catch (error: any) {
+        toast({
+          variant: "destructive",
+          title: "Authentication Error",
+          description: error.message || "Failed to complete authentication",
+        });
+      }
+    };
+
+    handleOAuthResponse();
+  }, [router, toast]);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -144,17 +194,46 @@ export default function LoginPage() {
   };
 
   const handleOAuthLogin = (provider: "google" | "facebook") => {
-    if (!redirectUri) return;
-
+    const redirectUri = encodeURIComponent(`${window.location.origin}/login`);
+    const baseUrl = "https://smartpantry-bc4q.onrender.com/auth";
+    
     try {
-      const baseUrl = "https://smartpantry-bc4q.onrender.com/auth";
-      const url =
-        provider === "google"
-          ? `${baseUrl}/google?redirect_uri=${redirectUri}`
-          : `${baseUrl}/facebook/redirect`;
-
-      window.location.href = url;
+      if (provider === "google") {
+        setIsOAuthLoading(true);
+        // Make direct request to get tokens
+        fetch(`${baseUrl}/google/callback`, {
+          method: "GET",
+          credentials: "include",
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.accessToken && data.role) {
+            setAuthCookies(data.accessToken, data.role);
+            toast({
+              title: "Login successful",
+              description: "Welcome back!",
+            });
+            router.push(data.role === "admin" ? "/admin" : "/dashboard");
+          } else {
+            throw new Error("Invalid authentication response");
+          }
+        })
+        .catch(error => {
+          toast({
+            variant: "destructive",
+            title: "Authentication Error",
+            description: error.message || "Failed to complete authentication",
+          });
+        })
+        .finally(() => {
+          setIsOAuthLoading(false);
+        });
+      } else {
+        // Facebook flow remains the same
+        window.location.href = `${baseUrl}/facebook/redirect?signup=false`;
+      }
     } catch (error) {
+      setIsOAuthLoading(false);
       toast({
         variant: "destructive",
         title: "Error",
@@ -239,9 +318,19 @@ export default function LoginPage() {
                 <Separator className="flex-1" />
               </div>
               <div className="mt-4 grid w-full gap-2">
-                <Button variant="outline" type="button" className="w-full" onClick={() => handleOAuthLogin("google")}>
-                  <Image src={google} alt="Google Icon" className="w-[30px] rounded-[5%]" />
-                  Continue with Google
+                <Button
+                  variant="outline"
+                  type="button"
+                  className="w-full"
+                  onClick={() => handleOAuthLogin("google")}
+                  disabled={isOAuthLoading}
+                >
+                  <Image
+                    src={google}
+                    alt="Google Icon"
+                    className="w-[30px] rounded-[5%]"
+                  />
+                  {isOAuthLoading ? "Authenticating..." : "Continue with Google"}
                 </Button>
                 <Button variant="outline" type="button" className="w-full" onClick={() => handleOAuthLogin("facebook")}>
                   <Image src={facebook} alt="Facebook Icon" className="w-[30px] rounded-[5%]" />
